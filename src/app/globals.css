@@ -52,7 +52,7 @@
 body {
   background-color: var(--sheet);
   color: var(--foreground);
-  font-family: var(--font-hanken), var(--font-noto-thai), system-ui, sans-serif;
+  font-family: "Hanken Grotesk", "Noto Sans Thai", system-ui, -apple-system, sans-serif;
   min-height: 100svh;
   overflow-x: hidden;
   transition: background-color 0.2s ease, color 0.2s ease;

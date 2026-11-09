@@ -1,20 +1,7 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { AppPreferencesProvider } from "@/hooks/use-app-preferences";
 import { AppHeader } from "@/components/layout/AppHeader";
-
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-hanken",
-  display: "swap",
-});
-
-const notoThai = Noto_Sans_Thai({
-  subsets: ["thai"],
-  variable: "--font-noto-thai",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Neramit AI (เนรมิต AI) · Unified Omni-Studio & Ad Production Suite",
@@ -28,11 +15,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="th"
-      data-theme="dark"
-      className={`${hanken.variable} ${notoThai.variable}`}
-    >
+    <html lang="th" data-theme="dark">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="antialiased">
         <AppPreferencesProvider>
           <div className="flex min-h-svh flex-col">
