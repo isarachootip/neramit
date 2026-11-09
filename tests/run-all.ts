@@ -16,7 +16,7 @@ import {
   validateTemplateExecutionInput,
 } from "../src/domain/studio-schemas";
 import { ALL_STUDIO_MODELS, getModelBySlug } from "../src/domain/models-video-data";
-import { GENWHY_TEMPLATES } from "../src/domain/templates-data";
+import { NERAMIT_TEMPLATES, NERAMIT_PRICING_PACKAGES } from "../src/domain/templates-data";
 import {
   detectAtMentionQuery,
   applyAtMentionSelection,
@@ -32,13 +32,22 @@ interface TestCase {
 
 const tests: TestCase[] = [
   {
-    name: "Catalog: Contains 9 Image models, 11 Video models, and 7 Video Ad Templates",
+    name: "Catalog & Brand Hygiene: 9 Image models, 11 Video models, 7 Neramit Templates, zero legacy aliases",
     run: () => {
       const imageModels = ALL_STUDIO_MODELS.filter((m) => m.output === "image");
       const videoModels = ALL_STUDIO_MODELS.filter((m) => m.output === "video");
       assert.equal(imageModels.length, 9);
       assert.equal(videoModels.length, 11);
-      assert.equal(GENWHY_TEMPLATES.length, 7);
+      assert.equal(NERAMIT_TEMPLATES.length, 7);
+      assert.equal(NERAMIT_PRICING_PACKAGES.length, 5);
+      for (const m of ALL_STUDIO_MODELS) {
+        assert.equal(m.name.startsWith("neramit/"), true, `Expected neramit/ alias on ${m.slug}`);
+      }
+      for (const tpl of NERAMIT_TEMPLATES) {
+        assert.equal(tpl.modelAlias.startsWith("neramit/"), true);
+        assert.equal(tpl.thumbnailUrl.startsWith("/media/templates/"), true);
+        assert.equal(tpl.coverVideoUrl.startsWith("/media/templates/"), true);
+      }
     },
   },
   {

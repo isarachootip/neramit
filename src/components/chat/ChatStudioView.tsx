@@ -7,9 +7,9 @@ import { useAppPreferences } from "@/hooks/use-app-preferences";
 import { loadChatConversations, saveChatConversations } from "@/repositories/studio-storage";
 
 const CHAT_MODELS = [
-  { alias: "genwhy/glm-5-3-flash", title: "GLM 5.3 Flash (Fast Creative)" },
-  { alias: "genwhy/seed-2-0-lite", title: "Seed 2.0 Lite (ByteDance Storyboard)" },
-  { alias: "genwhy/gemini-omni-flash-1-1", title: "Gemini Omni Flash 1.1 (Multimodal)" },
+  { alias: "neramit/glm-5-3-flash", title: "GLM 5.3 Flash (Fast Creative)" },
+  { alias: "neramit/seed-2-0-lite", title: "Seed 2.0 Lite (ByteDance Storyboard)" },
+  { alias: "neramit/gemini-omni-flash-1-1", title: "Gemini Omni Flash 1.1 (Multimodal)" },
 ];
 
 export function ChatStudioView() {
@@ -72,8 +72,8 @@ export function ChatStudioView() {
 
     const replyFull =
       locale === "th"
-        ? `สำหรับการสร้าง **"${userPrompt}"** แนะนำโครงสร้าง Prompt แบบผสมผสาน GenWhy × Mantra:\n\n- **Model**: ใช้ \`Seedream 5 Pro\` (สำหรับภาพนิ่งแยก 16 เลเยอร์) หรือ \`Seedance 2.5\` (สำหรับวิดีโอพร้อมเสียง)\n- **Rich Prompt**: \`"${userPrompt} @img-1 — shot on 35mm Kodak Vision3, studio rim light, 8K commercial clarity"\``
-        : `Here is a production-ready creative direction for **"${userPrompt}"**:\n\n- **Recommended Model**: \`Seedance 2.5\` (Video) or \`Seedream 5 Pro\` (16-Layer Image)\n- **Rich Prompt**: \`"${userPrompt} @img-1 — 35mm anamorphic lens, soft volumetric key light, crisp commercial packshot"\``;
+        ? `สำหรับการสร้าง **"${userPrompt}"** แนะนำโครงสร้าง Prompt บน Neramit AI Omni-Studio:\n\n- **Model**: ใช้ \`Seedream 5 Pro\` (สำหรับภาพนิ่งแยก 16 เลเยอร์) หรือ \`Seedance 2.5\` (สำหรับวิดีโอพร้อมเสียง)\n- **Rich Prompt**: \`"${userPrompt} @img-1 — shot on 35mm Kodak Vision3, studio rim light, 8K commercial clarity"\``
+        : `Here is a Neramit AI creative direction for **"${userPrompt}"**:\n\n- **Recommended Model**: \`Seedance 2.5\` (Video) or \`Seedream 5 Pro\` (16-Layer Image)\n- **Rich Prompt**: \`"${userPrompt} @img-1 — 35mm anamorphic lens, soft volumetric key light, crisp commercial packshot"\``;
 
     for (let i = 1; i <= replyFull.length; i += 14) {
       setStreamingText(replyFull.slice(0, i));

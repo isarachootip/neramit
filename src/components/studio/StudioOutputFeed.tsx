@@ -20,9 +20,7 @@ export function StudioOutputFeed({
   onChainStage,
   locale,
 }: StudioOutputFeedProps) {
-  const [expandedLayerTurnId, setExpandedLayerTurnId] = useState<string | null>(
-    "seed-turn-1"
-  );
+  const [expandedLayerTurnId, setExpandedLayerTurnId] = useState<string | null>("seed-turn-1");
 
   return (
     <section className="flex flex-col gap-4">
@@ -39,9 +37,7 @@ export function StudioOutputFeed({
         <div className="neu-raised neu-shimmer flex h-52 flex-col items-center justify-center gap-2 rounded-3xl p-6 text-center">
           <Sparkles className="size-7 animate-spin text-violet-400" />
           <p className="text-sm font-bold">
-            {locale === "th"
-              ? "กำลังประมวลผลบน Neramit Hybrid Cluster..."
-              : "Rendering on Neramit Hybrid Cluster..."}
+            {locale === "th" ? "กำลังประมวลผลบน Neramit Hybrid Cluster..." : "Rendering on Neramit Hybrid Cluster..."}
           </p>
         </div>
       )}
@@ -49,19 +45,12 @@ export function StudioOutputFeed({
       {turns.map((turn) => {
         const showLayers = expandedLayerTurnId === turn.id;
         return (
-          <article
-            key={turn.id}
-            className="neramit-glass neu-grain flex flex-col gap-4 rounded-3xl p-4 sm:p-5"
-          >
+          <article key={turn.id} className="neramit-glass neu-grain flex flex-col gap-4 rounded-3xl p-4 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="neu-tint-primary rounded-full px-3 py-1 text-xs font-bold">
-                  {turn.modelTitle}
-                </span>
+                <span className="neu-tint-primary rounded-full px-3 py-1 text-xs font-bold">{turn.modelTitle}</span>
                 {turn.mode && (
-                  <span className="neu-pressed rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase">
-                    {turn.mode}
-                  </span>
+                  <span className="neu-pressed rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase">{turn.mode}</span>
                 )}
                 {turn.lineageLabel && (
                   <span className="flex items-center gap-1 rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[11px] font-bold text-violet-300">
@@ -87,24 +76,16 @@ export function StudioOutputFeed({
               </div>
             </div>
 
-            <p className="neu-pressed rounded-2xl p-3 text-xs sm:text-sm leading-relaxed">
-              {turn.prompt}
-            </p>
+            <p className="neu-pressed rounded-2xl p-3 text-xs sm:text-sm leading-relaxed">{turn.prompt}</p>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {turn.resultUrls.map((url, idx) =>
                 turn.output === "video" ? (
-                  <div
-                    key={`${turn.id}-vid-${idx}`}
-                    className="neu-pressed relative overflow-hidden rounded-2xl bg-black/40"
-                  >
+                  <div key={`${turn.id}-vid-${idx}`} className="neu-pressed relative overflow-hidden rounded-2xl bg-black/40">
                     <video src={url} controls loop playsInline className="max-h-[400px] w-full object-contain" />
                   </div>
                 ) : (
-                  <div
-                    key={`${turn.id}-img-${idx}`}
-                    className="neu-pressed group relative overflow-hidden rounded-2xl"
-                  >
+                  <div key={`${turn.id}-img-${idx}`} className="neu-pressed group relative overflow-hidden rounded-2xl">
                     <img src={url} alt={turn.prompt} className="max-h-[400px] w-full object-cover" />
                     <a
                       href={url}
@@ -120,30 +101,8 @@ export function StudioOutputFeed({
               )}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <div className="flex flex-wrap items-center gap-2">
-                {turn.output === "image" && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onChainStage({
-                        sourceTurnId: turn.id,
-                        sourceModelTitle: turn.modelTitle,
-                        mediaUrl: turn.resultUrls[0],
-                        targetStage: "video",
-                      })
-                    }
-                    className="neu-tint-primary flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold"
-                  >
-                    <Film className="size-3.5" />
-                    <span>
-                      {locale === "th"
-                        ? "ส่งภาพนี้ไปสร้างวิดีโอ I2V (@img-1)"
-                        : "Chain to Video I2V (@img-1)"}
-                    </span>
-                  </button>
-                )}
-
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {turn.output === "image" && (
                 <button
                   type="button"
                   onClick={() =>
@@ -151,28 +110,42 @@ export function StudioOutputFeed({
                       sourceTurnId: turn.id,
                       sourceModelTitle: turn.modelTitle,
                       mediaUrl: turn.resultUrls[0],
-                      targetStage: "audio",
+                      targetStage: "video",
                     })
                   }
-                  className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold"
+                  className="neu-tint-primary flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold"
                 >
-                  <Mic className="size-3.5 text-violet-400" />
-                  <span>
-                    {locale === "th" ? "ส่งไปพากย์เสียงโฆษณา" : "Chain to Voiceover"}
-                  </span>
+                  <Film className="size-3.5" />
+                  <span>{locale === "th" ? "ส่งภาพนี้ไปสร้างวิดีโอ I2V (@img-1)" : "Chain to Video I2V (@img-1)"}</span>
                 </button>
+              )}
 
-                {turn.layers && turn.layers.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setExpandedLayerTurnId(showLayers ? null : turn.id)}
-                    className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold text-violet-400"
-                  >
-                    <Layers className="size-3.5" />
-                    <span>{turn.layers.length} Transparent Layers</span>
-                  </button>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  onChainStage({
+                    sourceTurnId: turn.id,
+                    sourceModelTitle: turn.modelTitle,
+                    mediaUrl: turn.resultUrls[0],
+                    targetStage: "audio",
+                  })
+                }
+                className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold"
+              >
+                <Mic className="size-3.5 text-violet-400" />
+                <span>{locale === "th" ? "ส่งไปพากย์เสียงโฆษณา" : "Chain to Voiceover"}</span>
+              </button>
+
+              {turn.layers && turn.layers.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setExpandedLayerTurnId(showLayers ? null : turn.id)}
+                  className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold text-violet-400"
+                >
+                  <Layers className="size-3.5" />
+                  <span>{turn.layers.length} Transparent Layers</span>
+                </button>
+              )}
             </div>
 
             {showLayers && turn.layers && (

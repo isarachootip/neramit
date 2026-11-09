@@ -1,9 +1,9 @@
 import { StudioModelDefinition } from "./studio-types";
 
-export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
+export const NERAMIT_IMAGE_MODELS: StudioModelDefinition[] = [
   {
     slug: "seedream-5-lite",
-    name: "genwhy/seedream-5-lite",
+    name: "neramit/seedream-5-lite",
     kind: "Image",
     output: "image",
     title: "Seedream 5 Lite",
@@ -25,7 +25,7 @@ export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
   },
   {
     slug: "seedream-5-pro",
-    name: "genwhy/seedream-5-pro",
+    name: "neramit/seedream-5-pro",
     kind: "Image",
     output: "image",
     title: "Seedream 5 Pro",
@@ -48,7 +48,7 @@ export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
   },
   {
     slug: "nano-banana-2",
-    name: "genwhy/nano-banana-2",
+    name: "neramit/nano-banana-2",
     kind: "Image",
     output: "image",
     title: "Nano Banana 2",
@@ -69,7 +69,7 @@ export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
   },
   {
     slug: "nano-banana-2-1",
-    name: "genwhy/nano-banana-2-1",
+    name: "neramit/nano-banana-2-1",
     kind: "Image",
     output: "image",
     title: "Nano Banana 2.1",
@@ -90,7 +90,7 @@ export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
   },
   {
     slug: "gpt-image-2-5-flare",
-    name: "genwhy/gpt-image-2-5-flare",
+    name: "neramit/gpt-image-2-5-flare",
     kind: "Image",
     output: "image",
     title: "GPT Image 2.5 Flare",
@@ -112,7 +112,7 @@ export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
   },
   {
     slug: "gpt-image-2-5-sunburst",
-    name: "genwhy/gpt-image-2-5-sunburst",
+    name: "neramit/gpt-image-2-5-sunburst",
     kind: "Image",
     output: "image",
     title: "GPT Image 2.5 Sunburst",
@@ -134,7 +134,7 @@ export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
   },
   {
     slug: "nano-banana-lite",
-    name: "genwhy/nano-banana-lite",
+    name: "neramit/nano-banana-lite",
     kind: "Image",
     output: "image",
     title: "Nano Banana Lite",
@@ -154,7 +154,7 @@ export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
   },
   {
     slug: "nano-banana-pro",
-    name: "genwhy/nano-banana-pro",
+    name: "neramit/nano-banana-pro",
     kind: "Image",
     output: "image",
     title: "Nano Banana Pro",
@@ -175,7 +175,7 @@ export const GENWHY_IMAGE_MODELS: StudioModelDefinition[] = [
   },
   {
     slug: "grok-imagine-2",
-    name: "genwhy/grok-imagine-2",
+    name: "neramit/grok-imagine-2",
     kind: "Image",
     output: "image",
     title: "Grok Imagine 2",

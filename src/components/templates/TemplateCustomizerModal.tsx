@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Coins, Sparkles, X } from "lucide-react";
 import {
-  GenWhyTemplate,
+  NeramitTemplate,
   StudioGenerationTurn,
   StudioLocale,
 } from "@/domain/studio-types";
@@ -14,7 +14,7 @@ import {
 } from "@/repositories/studio-storage";
 
 interface TemplateCustomizerModalProps {
-  template: GenWhyTemplate | null;
+  template: NeramitTemplate | null;
   onClose: () => void;
   spendTokens: (amount: number) => boolean;
   locale: StudioLocale;

@@ -93,7 +93,7 @@ export interface TemplateImageSlot {
   required: boolean;
 }
 
-export interface GenWhyTemplate {
+export interface NeramitTemplate {
   slug: string;
   name: string;
   description: string;

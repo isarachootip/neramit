@@ -54,7 +54,7 @@ export function ModelSelectorBar({
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-            {locale === "th" ? "เลือกโมเดล AI (GenWhy Catalogue)" : "Select AI Model"}
+            {locale === "th" ? "เลือกโมเดล AI (Neramit Catalogue)" : "Select Neramit AI Model"}
           </span>
           <span className="neu-pressed rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase">
             {activeModel.vendor} · Base {activeModel.baseTokens} Tokens

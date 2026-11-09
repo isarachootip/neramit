@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Check, Coins, Sparkles } from "lucide-react";
-import { GENWHY_PRICING_PACKAGES } from "@/domain/templates-data";
+import { NERAMIT_PRICING_PACKAGES } from "@/domain/templates-data";
 import { useAppPreferences } from "@/hooks/use-app-preferences";
 
 export default function PricingPage() {
@@ -10,14 +10,14 @@ export default function PricingPage() {
   const [interval, setInterval] = useState<"month" | "year">("month");
   const [recentPurchasedId, setRecentPurchasedId] = useState<string | null>(null);
 
-  const subscriptions = GENWHY_PRICING_PACKAGES.filter(
+  const subscriptions = NERAMIT_PRICING_PACKAGES.filter(
     (p) =>
       p.kind === "subscription" &&
       (interval === "month"
         ? p.billingInterval === "month"
         : p.billingInterval === "year" || p.id === "pro-month")
   );
-  const topups = GENWHY_PRICING_PACKAGES.filter((p) => p.kind === "topup");
+  const topups = NERAMIT_PRICING_PACKAGES.filter((p) => p.kind === "topup");
 
   const handlePurchase = (id: string, totalTokens: number) => {
     topUpTokens(totalTokens);
@@ -37,8 +37,8 @@ export default function PricingPage() {
         </span>
         <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
           {locale === "th"
-            ? "แพ็กเกจสมาชิก & เติม Token (GenWhy Pricing)"
-            : "Plans & Instant Token Top-Up"}
+            ? "แพ็กเกจสมาชิก & เติม Token (Neramit Pricing)"
+            : "Neramit Plans & Instant Token Top-Up"}
         </h1>
         <p className="max-w-xl text-xs sm:text-sm text-[var(--muted-foreground)]">
           {locale === "th"

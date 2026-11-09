@@ -14,11 +14,11 @@ const SAMPLE_IMAGE_POOL: string[] = [
 ];
 
 const SAMPLE_VIDEO_POOL: string[] = [
-  "https://cdn.genwhy.app/templates/dafbcf8c-d52a-49d5-b0d5-bbb1519ab561/cover-video-1fd57af0-33d1-4367-9dc0-4922b7b89cdb.mp4",
-  "https://cdn.genwhy.app/templates/6a1eed36-e01c-4302-9bb0-fae627f8904b/cover-video-1386c3b2-4245-48bb-b866-1ad997aa63bb.mp4",
-  "https://cdn.genwhy.app/templates/8b07627a-516f-45dc-bc8c-8aa0979a3fb7/cover-video.mp4",
-  "https://cdn.genwhy.app/templates/8f9505d0-4d0d-455e-af39-aebd6a8501f2/cover-video-336378cc-9a1e-4019-81fc-cbaca371ffc2.mp4",
-  "https://cdn.genwhy.app/templates/41f28602-ee7f-431d-abf8-71e690e4c48c/cover-video.mp4",
+  "/media/templates/swatch-snap-video.mp4",
+  "/media/templates/7-day-ootd-video.mp4",
+  "/media/templates/cute7ads-video.mp4",
+  "/media/templates/fashioncommercial-video.mp4",
+  "/media/templates/7-match-cut-video.mp4",
 ];
 
 interface ExtendedRequestPayload {

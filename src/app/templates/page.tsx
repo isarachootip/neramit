@@ -2,15 +2,15 @@
 
 import React, { useState } from "react";
 import { Coins, LayoutTemplate, Play } from "lucide-react";
-import { GENWHY_TEMPLATES } from "@/domain/templates-data";
-import { GenWhyTemplate } from "@/domain/studio-types";
+import { NERAMIT_TEMPLATES } from "@/domain/templates-data";
+import { NeramitTemplate } from "@/domain/studio-types";
 import { useAppPreferences } from "@/hooks/use-app-preferences";
 import { TemplateCustomizerModal } from "@/components/templates/TemplateCustomizerModal";
 
 export default function TemplatesPage() {
   const { locale, spendTokens } = useAppPreferences();
   const [selectedTemplate, setSelectedTemplate] =
-    useState<GenWhyTemplate | null>(null);
+    useState<NeramitTemplate | null>(null);
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8">
@@ -19,8 +19,8 @@ export default function TemplatesPage() {
           <LayoutTemplate className="size-5 text-violet-400" />
           <h1 className="text-2xl font-extrabold tracking-tight">
             {locale === "th"
-              ? "คลังเทมเพลตวิดีโอโฆษณาสำเร็จรูป (GenWhy Ad Templates)"
-              : "Commercial Video Ad Templates"}
+              ? "คลังเทมเพลตวิดีโอโฆษณาสำเร็จรูป (Neramit Ad Templates)"
+              : "Neramit Commercial Video Ad Templates"}
           </h1>
         </div>
         <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">
@@ -31,7 +31,7 @@ export default function TemplatesPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {GENWHY_TEMPLATES.map((tpl) => (
+        {NERAMIT_TEMPLATES.map((tpl) => (
           <article
             key={tpl.slug}
             onClick={() => setSelectedTemplate(tpl)}

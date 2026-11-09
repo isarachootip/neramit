@@ -1,5 +1,5 @@
 import { StudioModelDefinition, VideoModeDefinition } from "./studio-types";
-import { GENWHY_IMAGE_MODELS } from "./models-image-data";
+import { NERAMIT_IMAGE_MODELS } from "./models-image-data";
 
 const SEEDANCE_FULL_MODES: VideoModeDefinition[] = [
   { id: "t2v", label: "Text to Video", labelTh: "ข้อความเป็นวิดีโอ (T2V)" },
@@ -16,9 +16,9 @@ const BASIC_VIDEO_MODES: VideoModeDefinition[] = [
   { id: "flf", label: "First & Last Frame", labelTh: "เฟรมแรก-เฟรมสุดท้าย (FLF)", requiresFirstFrame: true, requiresLastFrame: true },
 ];
 
-export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
+export const NERAMIT_VIDEO_MODELS: StudioModelDefinition[] = [
   {
-    slug: "seedance-2-5", name: "genwhy/seedance-2-5", kind: "Video", output: "video", title: "Seedance 2.5", vendor: "bytedance",
+    slug: "seedance-2-5", name: "neramit/seedance-2-5", kind: "Video", output: "video", title: "Seedance 2.5", vendor: "bytedance",
     tagline: "Half a minute in one take with synchronized audio.",
     taglineTh: "สร้างวิดีโอความยาวสูงสุด 30 วินาทีในเทคเดียว พร้อมเสียงพากย์และดนตรีประกอบ",
     description: "Text to video and image to video with 6 studio modes, 4–30s at up to 1080p and 24 fps, with synchronized audio included.",
@@ -28,7 +28,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     audioIncluded: true, modes: SEEDANCE_FULL_MODES, durationRange: { min: 4, max: 30, defaultVal: 5 },
   },
   {
-    slug: "seedance-1-5-pro", name: "genwhy/seedance-1-5-pro", kind: "Video", output: "video", title: "Seedance 1.5 Pro", vendor: "bytedance",
+    slug: "seedance-1-5-pro", name: "neramit/seedance-1-5-pro", kind: "Video", output: "video", title: "Seedance 1.5 Pro", vendor: "bytedance",
     tagline: "Short film, from a sentence.",
     taglineTh: "ภาพยนตร์สั้นคุณภาพสูงจากประโยคเดียว เลือกเปิด/ปิดเสียงประกอบได้",
     description: "Text to video and image to video with a first and last frame, 4–12 seconds at up to 1080p and 24 fps.",
@@ -38,7 +38,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     supportsAudioToggle: true, modes: BASIC_VIDEO_MODES, durationRange: { min: 4, max: 12, defaultVal: 5 },
   },
   {
-    slug: "seedance-2-0", name: "genwhy/seedance-2-0", kind: "Video", output: "video", title: "Seedance 2.0", vendor: "bytedance",
+    slug: "seedance-2-0", name: "neramit/seedance-2-0", kind: "Video", output: "video", title: "Seedance 2.0", vendor: "bytedance",
     tagline: "The 2.5 toolkit, a step cheaper, up to 4K.",
     taglineTh: "เครื่องมือครบชุดเหมือน 2.5 ในราคาที่ประหยัดลง รองรับสูงสุด 4K",
     description: "Text to video, image to video, and reference-guided editing and extension, 4–15 seconds at up to 4K.",
@@ -48,7 +48,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     audioIncluded: true, modes: SEEDANCE_FULL_MODES, durationRange: { min: 4, max: 15, defaultVal: 5 },
   },
   {
-    slug: "seedance-2-0-fast", name: "genwhy/seedance-2-0-fast", kind: "Video", output: "video", title: "Seedance 2.0 Fast", vendor: "bytedance",
+    slug: "seedance-2-0-fast", name: "neramit/seedance-2-0-fast", kind: "Video", output: "video", title: "Seedance 2.0 Fast", vendor: "bytedance",
     tagline: "Quick drafts, full toolkit.",
     taglineTh: "เรนเดอร์ไวสำหรับงานดราฟต์ มาพร้อมเครื่องมือครบ 6 โหมด",
     description: "The 2.0 toolkit tuned for speed — 4–15 seconds at up to 720p with audio included.",
@@ -58,7 +58,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     audioIncluded: true, modes: SEEDANCE_FULL_MODES, durationRange: { min: 4, max: 15, defaultVal: 5 },
   },
   {
-    slug: "seedance-2-0-mini", name: "genwhy/seedance-2-0-mini", kind: "Video", output: "video", title: "Seedance 2.0 Mini", vendor: "bytedance",
+    slug: "seedance-2-0-mini", name: "neramit/seedance-2-0-mini", kind: "Video", output: "video", title: "Seedance 2.0 Mini", vendor: "bytedance",
     tagline: "The cheapest way to moving pictures.",
     taglineTh: "ประหยัด Token ที่สุดสำหรับการสร้างวิดีโอครบทุกโหมด",
     description: "Cost-effective video generation with the same six modes — 4–15 seconds at up to 720p.",
@@ -68,7 +68,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     audioIncluded: true, modes: SEEDANCE_FULL_MODES, durationRange: { min: 4, max: 15, defaultVal: 5 },
   },
   {
-    slug: "omnihuman-1-5", name: "genwhy/omnihuman-1-5", kind: "Video", output: "video", title: "OmniHuman 1.5", vendor: "bytedance",
+    slug: "omnihuman-1-5", name: "neramit/omnihuman-1-5", kind: "Video", output: "video", title: "OmniHuman 1.5", vendor: "bytedance",
     tagline: "A photograph, speaking.",
     taglineTh: "เปลี่ยนภาพถ่ายบุคคลให้พูดและขยับปากตามไฟล์เสียงอย่างเป็นธรรมชาติ",
     description: "Turns one portrait and an audio track into a video of that subject performing it at up to 1080p.",
@@ -79,7 +79,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     durationRange: { min: 4, max: 30, defaultVal: 6 },
   },
   {
-    slug: "omnihuman-2-0", name: "genwhy/omnihuman-2-0", kind: "Video", output: "video", title: "OmniHuman 2.0", vendor: "bytedance",
+    slug: "omnihuman-2-0", name: "neramit/omnihuman-2-0", kind: "Video", output: "video", title: "OmniHuman 2.0", vendor: "bytedance",
     tagline: "A photograph, performing.",
     taglineTh: "การแสดงออกทางร่างกายและมุมกล้องที่มีชีวิตชีวากว่าเดิม",
     description: "One portrait and a voice track become a lively performance video.",
@@ -90,7 +90,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     durationRange: { min: 4, max: 60, defaultVal: 8 },
   },
   {
-    slug: "dreamactor-m2", name: "genwhy/dreamactor-m2", kind: "Video", output: "video", title: "DreamActor M2.0", vendor: "bytedance",
+    slug: "dreamactor-m2", name: "neramit/dreamactor-m2", kind: "Video", output: "video", title: "DreamActor M2.0", vendor: "bytedance",
     tagline: "Your photo, moving like theirs.",
     taglineTh: "คัดลอกท่าทางและการแสดงออกจากคลิปต้นแบบมาใส่ในภาพถ่ายของคุณ",
     description: "Copies the motion, expression and lip movement of a template clip onto a subject in a still image.",
@@ -101,7 +101,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     durationRange: { min: 4, max: 30, defaultVal: 6 },
   },
   {
-    slug: "flux-3", name: "genwhy/flux-3", kind: "Video", output: "video", title: "FLUX 3", vendor: "blackforestlabs",
+    slug: "flux-3", name: "neramit/flux-3", kind: "Video", output: "video", title: "FLUX 3", vendor: "blackforestlabs",
     tagline: "A still frame, set in motion + Video Upscaler.",
     taglineTh: "สร้างวิดีโอและอัปสเกลความคมชัดสูงสุด 3 เท่าจาก Black Forest Labs",
     description: "Text to video, image to video, clip extension, and creative video upscaling up to 1080p.",
@@ -113,7 +113,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     durationRange: { min: 5, max: 20, defaultVal: 5 },
   },
   {
-    slug: "gemini-omni-flash-1-1", name: "genwhy/gemini-omni-flash-1-1", kind: "Video", output: "video", title: "Gemini Omni Flash 1.1", vendor: "google",
+    slug: "gemini-omni-flash-1-1", name: "neramit/gemini-omni-flash-1-1", kind: "Video", output: "video", title: "Gemini Omni Flash 1.1", vendor: "google",
     tagline: "Video with native sound, up to 4K.",
     taglineTh: "สร้างวิดีโอพร้อมเสียงธรรมชาติระดับ 4K รองรับภาพอ้างอิงสูงสุด 10 ภาพ",
     description: "Text to video, first/last frame, or up to ten reference images at up to 4K with native sound.",
@@ -125,7 +125,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
     durationRange: { min: 4, max: 10, defaultVal: 8 },
   },
   {
-    slug: "grok-imagine-video-1-5", name: "genwhy/grok-imagine-video-1-5", kind: "Video", output: "video", title: "Grok Imagine Video 1.5", vendor: "xai",
+    slug: "grok-imagine-video-1-5", name: "neramit/grok-imagine-video-1-5", kind: "Video", output: "video", title: "Grok Imagine Video 1.5", vendor: "xai",
     tagline: "Video with native sound, from text, a picture or references.",
     taglineTh: "วิดีโอพร้อมเสียงจาก xAI รองรับภาพอ้างอิงสูงสุด 7 ภาพ",
     description: "Text to video, a first frame, or up to seven reference images. 4 to 15 seconds at up to 1080p.",
@@ -138,7 +138,7 @@ export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
   },
 ];
 
-export const ALL_STUDIO_MODELS: StudioModelDefinition[] = [...GENWHY_IMAGE_MODELS, ...GENWHY_VIDEO_MODELS];
+export const ALL_STUDIO_MODELS: StudioModelDefinition[] = [...NERAMIT_IMAGE_MODELS, ...NERAMIT_VIDEO_MODELS];
 
 export function getModelBySlug(slugOrAlias: string): StudioModelDefinition | undefined {
   return ALL_STUDIO_MODELS.find((m) => m.slug === slugOrAlias || m.name === slugOrAlias);

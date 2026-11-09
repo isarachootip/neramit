@@ -58,7 +58,7 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* GenWhy Tactile Neumorphic Surfaces */
+/* Neramit Tactile Neumorphic Surfaces */
 .neu-raised {
   background-color: var(--surface);
   box-shadow:

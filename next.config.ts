@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
     remotePatterns: [
-      { protocol: "https", hostname: "cdn.genwhy.app" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },

@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Coins, Film, Image as ImageIcon, LayoutTemplate, MessageSquare, Mic, Play, Sparkles } from "lucide-react";
-import { GENWHY_TEMPLATES } from "@/domain/templates-data";
-import { GenWhyTemplate, StudioGenerationTurn } from "@/domain/studio-types";
+import { NERAMIT_TEMPLATES } from "@/domain/templates-data";
+import { NeramitTemplate, StudioGenerationTurn } from "@/domain/studio-types";
 import { useAppPreferences } from "@/hooks/use-app-preferences";
 import { loadGenerationTurns } from "@/repositories/studio-storage";
 import { TemplateCustomizerModal } from "@/components/templates/TemplateCustomizerModal";
@@ -12,7 +12,7 @@ import { TemplateCustomizerModal } from "@/components/templates/TemplateCustomiz
 export default function HomePage() {
   const { t, locale, spendTokens } = useAppPreferences();
   const [recentTurns, setRecentTurns] = useState<StudioGenerationTurn[]>([]);
-  const [activeTemplate, setActiveTemplate] = useState<GenWhyTemplate | null>(null);
+  const [activeTemplate, setActiveTemplate] = useState<NeramitTemplate | null>(null);
   const [greeting, setGreeting] = useState<string>(t.home.greetingAfternoon);
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {GENWHY_TEMPLATES.slice(0, 4).map((tpl) => (
+          {NERAMIT_TEMPLATES.slice(0, 4).map((tpl) => (
             <article
               key={tpl.slug}
               onClick={() => setActiveTemplate(tpl)}

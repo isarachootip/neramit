@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getModelBySlug } from "./models-video-data";
-import { GENWHY_TEMPLATES } from "./templates-data";
+import { NERAMIT_TEMPLATES } from "./templates-data";
 
 export const GenerationRequestSchema = z
   .object({
@@ -92,7 +92,7 @@ export const TemplateExecutionSchema = z
     aspectRatio: z.string().default("9:16"),
   })
   .superRefine((data, ctx) => {
-    const tpl = GENWHY_TEMPLATES.find((t) => t.slug === data.templateSlug);
+    const tpl = NERAMIT_TEMPLATES.find((t) => t.slug === data.templateSlug);
     if (!tpl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
