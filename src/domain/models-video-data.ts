@@ -1,0 +1,145 @@
+import { StudioModelDefinition, VideoModeDefinition } from "./studio-types";
+import { GENWHY_IMAGE_MODELS } from "./models-image-data";
+
+const SEEDANCE_FULL_MODES: VideoModeDefinition[] = [
+  { id: "t2v", label: "Text to Video", labelTh: "ข้อความเป็นวิดีโอ (T2V)" },
+  { id: "i2v", label: "Image to Video", labelTh: "รูปภาพเป็นวิดีโอ (I2V)", requiresFirstFrame: true },
+  { id: "flf", label: "First & Last Frame", labelTh: "เฟรมแรก-เฟรมสุดท้าย (FLF)", requiresFirstFrame: true, requiresLastFrame: true },
+  { id: "extend", label: "Extend Clip", labelTh: "ขยายความยาวคลิป", requiresSourceVideo: true },
+  { id: "edit", label: "Edit Clip", labelTh: "แก้ไขคลิปวิดีโอ", requiresSourceVideo: true },
+  { id: "reference", label: "Multi-Reference (@img)", labelTh: "อ้างอิงหลายภาพ (@img)", maxReferenceImages: 9 },
+];
+
+const BASIC_VIDEO_MODES: VideoModeDefinition[] = [
+  { id: "t2v", label: "Text to Video", labelTh: "ข้อความเป็นวิดีโอ (T2V)" },
+  { id: "i2v", label: "Image to Video", labelTh: "รูปภาพเป็นวิดีโอ (I2V)", requiresFirstFrame: true },
+  { id: "flf", label: "First & Last Frame", labelTh: "เฟรมแรก-เฟรมสุดท้าย (FLF)", requiresFirstFrame: true, requiresLastFrame: true },
+];
+
+export const GENWHY_VIDEO_MODELS: StudioModelDefinition[] = [
+  {
+    slug: "seedance-2-5", name: "genwhy/seedance-2-5", kind: "Video", output: "video", title: "Seedance 2.5", vendor: "bytedance",
+    tagline: "Half a minute in one take with synchronized audio.",
+    taglineTh: "สร้างวิดีโอความยาวสูงสุด 30 วินาทีในเทคเดียว พร้อมเสียงพากย์และดนตรีประกอบ",
+    description: "Text to video and image to video with 6 studio modes, 4–30s at up to 1080p and 24 fps, with synchronized audio included.",
+    descriptionTh: "ครบทั้ง 6 โหมดสตูดิโอ ความยาว 4–30 วินาที ความละเอียดสูงสุด 1080p พร้อมเสียงประกอบซิงค์อัตโนมัติ",
+    flag: "new", aspect: "16:9", baseTokens: 18, maxPromptChars: 4000, maxReferenceImages: 9,
+    resolutions: ["480p", "720p", "1080p"], aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+    audioIncluded: true, modes: SEEDANCE_FULL_MODES, durationRange: { min: 4, max: 30, defaultVal: 5 },
+  },
+  {
+    slug: "seedance-1-5-pro", name: "genwhy/seedance-1-5-pro", kind: "Video", output: "video", title: "Seedance 1.5 Pro", vendor: "bytedance",
+    tagline: "Short film, from a sentence.",
+    taglineTh: "ภาพยนตร์สั้นคุณภาพสูงจากประโยคเดียว เลือกเปิด/ปิดเสียงประกอบได้",
+    description: "Text to video and image to video with a first and last frame, 4–12 seconds at up to 1080p and 24 fps.",
+    descriptionTh: "รองรับ T2V, I2V และ First/Last Frame ความยาว 4–12 วินาที (เปิดเสียงเพิ่ม Token 2 เท่า)",
+    flag: "new", aspect: "16:9", baseTokens: 14, maxPromptChars: 4000, maxReferenceImages: 2,
+    resolutions: ["480p", "720p", "1080p"], aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+    supportsAudioToggle: true, modes: BASIC_VIDEO_MODES, durationRange: { min: 4, max: 12, defaultVal: 5 },
+  },
+  {
+    slug: "seedance-2-0", name: "genwhy/seedance-2-0", kind: "Video", output: "video", title: "Seedance 2.0", vendor: "bytedance",
+    tagline: "The 2.5 toolkit, a step cheaper, up to 4K.",
+    taglineTh: "เครื่องมือครบชุดเหมือน 2.5 ในราคาที่ประหยัดลง รองรับสูงสุด 4K",
+    description: "Text to video, image to video, and reference-guided editing and extension, 4–15 seconds at up to 4K.",
+    descriptionTh: "รองรับ 6 โหมดครบชุด ความยาว 4–15 วินาที ความละเอียดสูงสุด 4K พร้อมเสียงซิงค์ในตัว",
+    flag: "new", aspect: "16:9", baseTokens: 15, maxPromptChars: 4000, maxReferenceImages: 9,
+    resolutions: ["480p", "720p", "1080p", "4K"], aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+    audioIncluded: true, modes: SEEDANCE_FULL_MODES, durationRange: { min: 4, max: 15, defaultVal: 5 },
+  },
+  {
+    slug: "seedance-2-0-fast", name: "genwhy/seedance-2-0-fast", kind: "Video", output: "video", title: "Seedance 2.0 Fast", vendor: "bytedance",
+    tagline: "Quick drafts, full toolkit.",
+    taglineTh: "เรนเดอร์ไวสำหรับงานดราฟต์ มาพร้อมเครื่องมือครบ 6 โหมด",
+    description: "The 2.0 toolkit tuned for speed — 4–15 seconds at up to 720p with audio included.",
+    descriptionTh: "ปรับจูนความเร็วเป็นพิเศษ ความยาว 4–15 วินาทีที่ 720p พร้อมเสียงประกอบ",
+    flag: "new", aspect: "16:9", baseTokens: 10, maxPromptChars: 4000, maxReferenceImages: 9,
+    resolutions: ["480p", "720p"], aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+    audioIncluded: true, modes: SEEDANCE_FULL_MODES, durationRange: { min: 4, max: 15, defaultVal: 5 },
+  },
+  {
+    slug: "seedance-2-0-mini", name: "genwhy/seedance-2-0-mini", kind: "Video", output: "video", title: "Seedance 2.0 Mini", vendor: "bytedance",
+    tagline: "The cheapest way to moving pictures.",
+    taglineTh: "ประหยัด Token ที่สุดสำหรับการสร้างวิดีโอครบทุกโหมด",
+    description: "Cost-effective video generation with the same six modes — 4–15 seconds at up to 720p.",
+    descriptionTh: "สร้างวิดีโอสุดคุ้มค่า รองรับ 6 โหมดเหมือนรุ่นใหญ่ ความยาว 4–15 วินาที",
+    flag: "new", aspect: "16:9", baseTokens: 8, maxPromptChars: 4000, maxReferenceImages: 9,
+    resolutions: ["480p", "720p"], aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+    audioIncluded: true, modes: SEEDANCE_FULL_MODES, durationRange: { min: 4, max: 15, defaultVal: 5 },
+  },
+  {
+    slug: "omnihuman-1-5", name: "genwhy/omnihuman-1-5", kind: "Video", output: "video", title: "OmniHuman 1.5", vendor: "bytedance",
+    tagline: "A photograph, speaking.",
+    taglineTh: "เปลี่ยนภาพถ่ายบุคคลให้พูดและขยับปากตามไฟล์เสียงอย่างเป็นธรรมชาติ",
+    description: "Turns one portrait and an audio track into a video of that subject performing it at up to 1080p.",
+    descriptionTh: "อัปโหลดภาพ Portrait + เสียงพากย์ เพื่อสร้างวิดีโอพูดคุยพร้อมสีหน้าและท่าทางระดับ 1080p",
+    flag: "new", aspect: "1:1", baseTokens: 20, maxPromptChars: 4000, maxReferenceImages: 1,
+    resolutions: ["720p", "1080p"], aspectRatios: ["1:1", "9:16", "16:9"],
+    modes: [{ id: "avatar", label: "Talking Avatar", labelTh: "ภาพถ่ายพูดได้ (Avatar)", requiresFirstFrame: true, requiresAudio: true }],
+    durationRange: { min: 4, max: 30, defaultVal: 6 },
+  },
+  {
+    slug: "omnihuman-2-0", name: "genwhy/omnihuman-2-0", kind: "Video", output: "video", title: "OmniHuman 2.0", vendor: "bytedance",
+    tagline: "A photograph, performing.",
+    taglineTh: "การแสดงออกทางร่างกายและมุมกล้องที่มีชีวิตชีวากว่าเดิม",
+    description: "One portrait and a voice track become a lively performance video.",
+    descriptionTh: "ยกระดับการขยับร่างกายและมุมกล้องให้สมจริงยิ่งขึ้นจากภาพถ่ายใบเดียว",
+    flag: "new", aspect: "1:1", baseTokens: 24, maxPromptChars: 4000, maxReferenceImages: 1,
+    resolutions: ["720p"], aspectRatios: ["1:1", "9:16", "16:9"],
+    modes: [{ id: "avatar20", label: "Performance Avatar 2.0", labelTh: "อวตารแสดงท่าทาง 2.0", requiresFirstFrame: true, requiresAudio: true }],
+    durationRange: { min: 4, max: 60, defaultVal: 8 },
+  },
+  {
+    slug: "dreamactor-m2", name: "genwhy/dreamactor-m2", kind: "Video", output: "video", title: "DreamActor M2.0", vendor: "bytedance",
+    tagline: "Your photo, moving like theirs.",
+    taglineTh: "คัดลอกท่าทางและการแสดงออกจากคลิปต้นแบบมาใส่ในภาพถ่ายของคุณ",
+    description: "Copies the motion, expression and lip movement of a template clip onto a subject in a still image.",
+    descriptionTh: "ถ่ายโอนการเคลื่อนไหวและสีหน้าจากวิดีโอต้นแบบเข้าสู่ตัวละครในภาพนิ่ง",
+    flag: "new", aspect: "1:1", baseTokens: 22, maxPromptChars: 4000, maxReferenceImages: 1,
+    resolutions: ["720p"], aspectRatios: ["1:1", "9:16", "16:9"],
+    modes: [{ id: "motion", label: "Motion Transfer", labelTh: "คัดลอกการเคลื่อนไหว", requiresFirstFrame: true, requiresSourceVideo: true }],
+    durationRange: { min: 4, max: 30, defaultVal: 6 },
+  },
+  {
+    slug: "flux-3", name: "genwhy/flux-3", kind: "Video", output: "video", title: "FLUX 3", vendor: "blackforestlabs",
+    tagline: "A still frame, set in motion + Video Upscaler.",
+    taglineTh: "สร้างวิดีโอและอัปสเกลความคมชัดสูงสุด 3 เท่าจาก Black Forest Labs",
+    description: "Text to video, image to video, clip extension, and creative video upscaling up to 1080p.",
+    descriptionTh: "รองรับ T2V, I2V, FLF, Extend และโหมด Upscale ขยายความคมชัดวิดีโอ",
+    flag: "new", aspect: "16:9", baseTokens: 16, maxPromptChars: 4000, maxReferenceImages: 2,
+    resolutions: ["720p", "1080p"], aspectRatios: ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"],
+    audioIncluded: true,
+    modes: [...BASIC_VIDEO_MODES, { id: "extend", label: "Extend Clip", labelTh: "ขยายคลิป", requiresSourceVideo: true }, { id: "upscale", label: "Upscale Video", labelTh: "อัปสเกลความชัดวิดีโอ", requiresSourceVideo: true }],
+    durationRange: { min: 5, max: 20, defaultVal: 5 },
+  },
+  {
+    slug: "gemini-omni-flash-1-1", name: "genwhy/gemini-omni-flash-1-1", kind: "Video", output: "video", title: "Gemini Omni Flash 1.1", vendor: "google",
+    tagline: "Video with native sound, up to 4K.",
+    taglineTh: "สร้างวิดีโอพร้อมเสียงธรรมชาติระดับ 4K รองรับภาพอ้างอิงสูงสุด 10 ภาพ",
+    description: "Text to video, first/last frame, or up to ten reference images at up to 4K with native sound.",
+    descriptionTh: "โมเดลวิดีโอความละเอียดสูงสุด 4K จาก Google รองรับภาพอ้างอิงสูงสุด 10 ภาพ",
+    flag: "new", aspect: "16:9", baseTokens: 20, maxPromptChars: 20000, maxReferenceImages: 10,
+    resolutions: ["720p", "1080p", "4K"], aspectRatios: ["16:9", "9:16"],
+    audioIncluded: true,
+    modes: [...BASIC_VIDEO_MODES, { id: "reference", label: "Reference Images (10)", labelTh: "ภาพอ้างอิง (สูงสุด 10 ภาพ)", maxReferenceImages: 10 }, { id: "edit", label: "Edit Clip", labelTh: "แก้ไขคลิปวิดีโอ", requiresSourceVideo: true }],
+    durationRange: { min: 4, max: 10, defaultVal: 8 },
+  },
+  {
+    slug: "grok-imagine-video-1-5", name: "genwhy/grok-imagine-video-1-5", kind: "Video", output: "video", title: "Grok Imagine Video 1.5", vendor: "xai",
+    tagline: "Video with native sound, from text, a picture or references.",
+    taglineTh: "วิดีโอพร้อมเสียงจาก xAI รองรับภาพอ้างอิงสูงสุด 7 ภาพ",
+    description: "Text to video, a first frame, or up to seven reference images. 4 to 15 seconds at up to 1080p.",
+    descriptionTh: "สร้างวิดีโอ 4–15 วินาที พร้อมเสียงในตัว รองรับภาพอ้างอิงสินค้าหรือตัวละคร 7 ภาพ",
+    flag: "new", aspect: "16:9", baseTokens: 17, maxPromptChars: 4096, maxReferenceImages: 7,
+    resolutions: ["480p", "720p", "1080p"], aspectRatios: ["16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16"],
+    audioIncluded: true,
+    modes: [{ id: "t2v", label: "Text to Video", labelTh: "ข้อความเป็นวิดีโอ (T2V)" }, { id: "i2v", label: "Image to Video", labelTh: "รูปภาพเป็นวิดีโอ (I2V)", requiresFirstFrame: true }, { id: "reference", label: "Reference (Up to 7)", labelTh: "ภาพอ้างอิง (สูงสุด 7 ภาพ)", maxReferenceImages: 7 }],
+    durationRange: { min: 4, max: 15, defaultVal: 6 },
+  },
+];
+
+export const ALL_STUDIO_MODELS: StudioModelDefinition[] = [...GENWHY_IMAGE_MODELS, ...GENWHY_VIDEO_MODELS];
+
+export function getModelBySlug(slugOrAlias: string): StudioModelDefinition | undefined {
+  return ALL_STUDIO_MODELS.find((m) => m.slug === slugOrAlias || m.name === slugOrAlias);
+}
