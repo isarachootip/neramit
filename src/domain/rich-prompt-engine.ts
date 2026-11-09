@@ -70,7 +70,7 @@ const VIDEO_PROMPT_IDEAS: Record<StudioLocale, string[]> = {
   ],
 };
 
-const TAG_REGEX = /@(?:img-\d+|Image\d+|Audio\d+)/g;
+const TAG_REGEX = /@(?:img-\d+|Image\d+|video-\d+|audio-\d+|Audio\d+)/g;
 
 export function extractReferenceTags(prompt: string): string[] {
   const matches = prompt.match(TAG_REGEX);

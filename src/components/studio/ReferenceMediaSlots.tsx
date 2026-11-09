@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Brush, ImagePlus, Plus, Sparkles, Trash2 } from "lucide-react";
 import { StudioLocale } from "@/domain/studio-types";
+import { MaskCanvasModal } from "./MaskCanvasModal";
 
 interface ReferenceMediaSlotsProps {
   referenceImages: string[];
@@ -43,122 +44,122 @@ export function ReferenceMediaSlots({
   locale,
 }: ReferenceMediaSlotsProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [maskModalOpen, setMaskModalOpen] = useState<boolean>(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      if (typeof reader.result === "string") {
-        onAddReference(reader.result);
-      }
+      if (typeof reader.result === "string") onAddReference(reader.result);
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
   return (
-    <div className="neu-flat flex flex-col gap-3 rounded-3xl p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <ImagePlus className="size-4 text-violet-400" />
-          <span className="text-xs font-bold">
-            {locale === "th"
-              ? `ภาพอ้างอิง & เฟรมต้นแบบ (${referenceImages.length}/${maxReferences})`
-              : `Reference Images & Keyframes (${referenceImages.length}/${maxReferences})`}
-          </span>
-          <span className="hidden sm:inline text-[11px] text-[var(--muted-foreground)]">
-            — {locale === "th" ? "คลิกป้าย @img-N เพื่อแทรกลงใน Prompt" : "Click @img-N pill to insert into prompt"}
-          </span>
+    <>
+      <div className="neu-flat flex flex-col gap-3 rounded-3xl p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ImagePlus className="size-4 text-violet-400" />
+            <span className="text-xs font-bold">
+              {locale === "th"
+                ? `ถาดวัตถุดิบอ้างอิง (${referenceImages.length}/${maxReferences})`
+                : `Reference Asset Tray (${referenceImages.length}/${maxReferences})`}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {SAMPLE_REFERENCE_PRESETS.map((sample) => (
+              <button
+                key={sample.label}
+                type="button"
+                onClick={() => onAddReference(sample.url)}
+                disabled={referenceImages.length >= maxReferences}
+                className="neu-raised flex items-center gap-1 rounded-xl px-2.5 py-1 text-[11px] font-semibold disabled:opacity-40"
+              >
+                <Sparkles className="size-3 text-violet-400" />
+                <span>+{sample.label}</span>
+              </button>
+            ))}
+
+            {(supportsMask || referenceImages.length > 0) && (
+              <button
+                type="button"
+                onClick={() => setMaskModalOpen(true)}
+                className={`flex items-center gap-1 rounded-xl px-2.5 py-1 text-[11px] font-bold ${
+                  maskDataUrl ? "neu-tint-primary" : "neu-pressed"
+                }`}
+              >
+                <Brush className="size-3" />
+                <span>{maskDataUrl ? "Mask Painted ✓" : "Paint Canvas Mask"}</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {SAMPLE_REFERENCE_PRESETS.map((sample) => (
-            <button
-              key={sample.label}
-              type="button"
-              onClick={() => onAddReference(sample.url)}
-              disabled={referenceImages.length >= maxReferences}
-              className="neu-raised flex items-center gap-1 rounded-xl px-2.5 py-1 text-[11px] font-semibold transition-transform active:scale-95 disabled:opacity-40"
-            >
-              <Sparkles className="size-3 text-violet-400" />
-              <span>+{sample.label}</span>
-            </button>
-          ))}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={handleFileChange}
+        />
 
-          {supportsMask && referenceImages.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2.5">
+          {referenceImages.map((imgUrl, idx) => {
+            const tag = `@img-${idx + 1}`;
+            return (
+              <div
+                key={`${imgUrl}-${idx}`}
+                className="neu-pressed group relative flex items-center gap-2 rounded-2xl p-1.5 pr-2.5"
+              >
+                <img src={imgUrl} alt={tag} className="size-12 rounded-xl object-cover" />
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onInsertTag(tag)}
+                    className="neu-tint-primary rounded-lg px-2 py-0.5 text-[11px] font-extrabold"
+                  >
+                    {tag}
+                  </button>
+                  <span className="text-[10px] text-[var(--muted-foreground)]">
+                    {idx === 0 ? "Keyframe 1" : idx === 1 ? "Keyframe 2" : `Ref ${idx + 1}`}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onRemoveReference(idx)}
+                  className="ml-1 rounded-lg p-1 text-[var(--muted-foreground)] hover:text-red-400"
+                  aria-label={`Remove ${tag}`}
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              </div>
+            );
+          })}
+
+          {referenceImages.length < maxReferences && (
             <button
               type="button"
-              onClick={() =>
-                onToggleMask(maskDataUrl ? undefined : "mask://center-region-active")
-              }
-              className={`flex items-center gap-1 rounded-xl px-2.5 py-1 text-[11px] font-bold transition-all ${
-                maskDataUrl ? "neu-tint-primary" : "neu-pressed"
-              }`}
+              onClick={() => fileInputRef.current?.click()}
+              className="neu-pressed flex h-16 items-center gap-2 rounded-2xl border border-dashed border-[var(--border-control)] px-4 text-xs font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             >
-              <Brush className="size-3" />
-              <span>{maskDataUrl ? "Mask Active" : "Paint Mask"}</span>
+              <Plus className="size-4" />
+              <span>{locale === "th" ? "อัปโหลดรูปอ้างอิง" : "Upload Reference"}</span>
             </button>
           )}
         </div>
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="sr-only"
-        onChange={handleFileChange}
+      <MaskCanvasModal
+        open={maskModalOpen}
+        imageUrl={referenceImages[0]}
+        onClose={() => setMaskModalOpen(false)}
+        onSaveMask={onToggleMask}
+        locale={locale}
       />
-
-      <div className="flex flex-wrap items-center gap-2.5">
-        {referenceImages.map((imgUrl, idx) => {
-          const tag = `@img-${idx + 1}`;
-          return (
-            <div
-              key={`${imgUrl}-${idx}`}
-              className="neu-pressed group relative flex items-center gap-2 rounded-2xl p-1.5 pr-2.5"
-            >
-              <img
-                src={imgUrl}
-                alt={tag}
-                className="size-12 rounded-xl object-cover"
-              />
-              <div className="flex flex-col gap-1">
-                <button
-                  type="button"
-                  onClick={() => onInsertTag(tag)}
-                  className="neu-tint-primary rounded-lg px-2 py-0.5 text-[11px] font-extrabold tracking-wide transition-transform active:scale-95"
-                >
-                  {tag}
-                </button>
-                <span className="text-[10px] text-[var(--muted-foreground)]">
-                  {idx === 0 ? "First Frame / Ref 1" : idx === 1 ? "Last Frame / Ref 2" : `Ref ${idx + 1}`}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => onRemoveReference(idx)}
-                className="ml-1 rounded-lg p-1 text-[var(--muted-foreground)] hover:text-red-400"
-                aria-label={`Remove ${tag}`}
-              >
-                <Trash2 className="size-3.5" />
-              </button>
-            </div>
-          );
-        })}
-
-        {referenceImages.length < maxReferences && (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="neu-pressed flex h-16 items-center gap-2 rounded-2xl border border-dashed border-[var(--border-control)] px-4 text-xs font-semibold text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
-          >
-            <Plus className="size-4" />
-            <span>{locale === "th" ? "อัปโหลดรูปอ้างอิง" : "Upload Reference"}</span>
-          </button>
-        )}
-      </div>
-    </div>
+    </>
   );
 }

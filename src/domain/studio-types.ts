@@ -133,6 +133,8 @@ export interface StudioGenerationTurn {
   maskDataUrl?: string;
   resultUrls: string[];
   layers?: LayerItem[];
+  lineageLabel?: string;
+  providerUsed?: string;
 }
 
 export interface AudioSubtitleSentence {

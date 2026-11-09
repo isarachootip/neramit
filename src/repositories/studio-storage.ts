@@ -1,3 +1,4 @@
+import { ApiKeyVaultConfig } from "../domain/neramit-vault-types";
 import {
   AudioStudioTurn,
   ChatConversation,
@@ -7,11 +8,12 @@ import {
 } from "../domain/studio-types";
 
 const KEYS = {
-  UI: "genwhy.ui.v1",
-  WALLET: "genwhy.wallet.v1",
-  TURNS: "genwhy.turns.v1",
-  AUDIO: "genwhy.audio.v1",
-  CHATS: "genwhy.chats.v1",
+  UI: "neramit.ui.v1",
+  WALLET: "neramit.wallet.v1",
+  VAULT: "neramit.vault.v1",
+  TURNS: "neramit.turns.v1",
+  AUDIO: "neramit.audio.v1",
+  CHATS: "neramit.chats.v1",
 };
 
 export interface StoredUiPreferences {
@@ -19,6 +21,13 @@ export interface StoredUiPreferences {
   locale: StudioLocale;
   payWithTeam: boolean;
 }
+
+const DEFAULT_VAULT: ApiKeyVaultConfig = {
+  engineMode: "hybrid",
+  geminiApiKey: "",
+  openaiApiKey: "",
+  falApiKey: "",
+};
 
 const DEFAULT_GENERATION_TURNS: StudioGenerationTurn[] = [
   {
@@ -35,6 +44,8 @@ const DEFAULT_GENERATION_TURNS: StudioGenerationTurn[] = [
     numImages: 1,
     tokensCharged: 127,
     status: "succeeded",
+    lineageLabel: "Origin · Seedream 5 Pro (16-Layer Stack)",
+    providerUsed: "Neramit Hybrid Engine",
     referenceImages: [
       "https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&auto=format&fit=crop",
     ],
@@ -50,7 +61,7 @@ const DEFAULT_GENERATION_TURNS: StudioGenerationTurn[] = [
   },
   {
     id: "seed-turn-2",
-    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
     output: "video",
     modelSlug: "seedance-2-5",
     modelTitle: "Seedance 2.5",
@@ -64,6 +75,8 @@ const DEFAULT_GENERATION_TURNS: StudioGenerationTurn[] = [
     numImages: 1,
     tokensCharged: 150,
     status: "succeeded",
+    lineageLabel: "Chained from Seedream 5 Pro (#2 Hero Layer) → Seedance 2.5 (I2V)",
+    providerUsed: "Neramit Hybrid Engine",
     referenceImages: [
       "https://cdn.genwhy.app/templates/dafbcf8c-d52a-49d5-b0d5-bbb1519ab561/cover.png",
     ],
@@ -78,7 +91,7 @@ const DEFAULT_AUDIO_TURNS: AudioStudioTurn[] = [
     id: "audio-seed-1",
     createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     mode: "voice",
-    prompt: "สัมผัสความหอมเหนือระดับกับคอลเลกชันใหม่จาก Naramit Studio วันนี้ทุกสาขา",
+    prompt: "สัมผัสความหอมเหนือระดับกับคอลเลกชันใหม่จาก Neramit AI Studio วันนี้ทุกสาขา",
     voiceId: "th-female-nicha",
     voiceName: "ณิชา (Nicha · Thai Commercial)",
     format: "mp3",
@@ -87,7 +100,7 @@ const DEFAULT_AUDIO_TURNS: AudioStudioTurn[] = [
     audioUrl: "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
     subtitles: [
       { startMs: 0, endMs: 2200, text: "สัมผัสความหอมเหนือระดับ" },
-      { startMs: 2200, endMs: 4600, text: "กับคอลเลกชันใหม่จาก Naramit Studio" },
+      { startMs: 2200, endMs: 4600, text: "กับคอลเลกชันใหม่จาก Neramit AI Studio" },
       { startMs: 4600, endMs: 6400, text: "วันนี้ทุกสาขา" },
     ],
   },
@@ -110,7 +123,7 @@ const DEFAULT_CHATS: ChatConversation[] = [
         id: "m-2",
         role: "assistant",
         content:
-          "นี่คือสตอรี่บอร์ด 7 วินาทีสำหรับ **SparkPop** (แนะนำใช้โมเดล `Seedance 2.5` หรือเทมเพลต `Cute7Ads`):\n\n1. **0.0s–2.0s (Hook)**: โคลสอัพเปิดฝากระป๋อง `@img-1` ฟองโซดาพุ่งกระจายพร้อมเสียงซ่าสดชื่น\n2. **2.0s–5.0s (Match-Cut)**: นางแบบเปลี่ยนลุค OOTD 3 สีสดใสตามรสชาติผลไม้\n3. **5.0s–7.0s (Packshot)**: โลโก้ `@img-2` เด้งขึ้นมาพร้อมสโลแกน *\"ซ่าทุกวัน สดชื่นทุกสไตล์!\"*",
+          "นี่คือสตอรี่บอร์ด 7 วินาทีสำหรับ **SparkPop** บน **Neramit AI Omni-Studio**:\n\n1. **Image Stage (`Seedream 5 Pro`)**: เจนภาพกระป๋อง `@img-1` แบบแยก 16 เลเยอร์ใส\n2. **Video Stage (`Seedance 2.5`)**: กดปุ่ม *Chain to Video (I2V)* เพื่อหมุนกล้องรอบกระป๋องพร้อมฟองโซดา\n3. **Audio Stage (`Seed Audio 1.0`)**: กด *Add Voiceover* พากย์สโลแกน *\"ซ่าทุกวัน สดชื่นทุกสไตล์!\"*",
         createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
         modelAlias: "genwhy/glm-5-3-flash",
         tokensCharged: 8,
@@ -127,28 +140,38 @@ export function loadUiPreferences(): StoredUiPreferences {
   if (!isBrowser()) return { theme: "dark", locale: "th", payWithTeam: false };
   try {
     const raw = window.localStorage.getItem(KEYS.UI);
-    if (!raw) return { theme: "dark", locale: "th", payWithTeam: false };
-    return JSON.parse(raw) as StoredUiPreferences;
+    return raw ? (JSON.parse(raw) as StoredUiPreferences) : { theme: "dark", locale: "th", payWithTeam: false };
   } catch {
     return { theme: "dark", locale: "th", payWithTeam: false };
   }
 }
 
 export function saveUiPreferences(prefs: StoredUiPreferences): void {
-  if (!isBrowser()) return;
-  window.localStorage.setItem(KEYS.UI, JSON.stringify(prefs));
+  if (isBrowser()) window.localStorage.setItem(KEYS.UI, JSON.stringify(prefs));
 }
 
 export function loadWalletBalance(): number {
   if (!isBrowser()) return 2500;
-  const raw = window.localStorage.getItem(KEYS.WALLET);
-  const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
+  const parsed = Number.parseInt(window.localStorage.getItem(KEYS.WALLET) ?? "", 10);
   return Number.isFinite(parsed) ? parsed : 2500;
 }
 
 export function saveWalletBalance(tokens: number): void {
-  if (!isBrowser()) return;
-  window.localStorage.setItem(KEYS.WALLET, String(Math.max(0, Math.round(tokens))));
+  if (isBrowser()) window.localStorage.setItem(KEYS.WALLET, String(Math.max(0, Math.round(tokens))));
+}
+
+export function loadApiKeyVault(): ApiKeyVaultConfig {
+  if (!isBrowser()) return DEFAULT_VAULT;
+  try {
+    const raw = window.localStorage.getItem(KEYS.VAULT);
+    return raw ? { ...DEFAULT_VAULT, ...(JSON.parse(raw) as ApiKeyVaultConfig) } : DEFAULT_VAULT;
+  } catch {
+    return DEFAULT_VAULT;
+  }
+}
+
+export function saveApiKeyVault(vault: ApiKeyVaultConfig): void {
+  if (isBrowser()) window.localStorage.setItem(KEYS.VAULT, JSON.stringify(vault));
 }
 
 export function loadGenerationTurns(): StudioGenerationTurn[] {
@@ -162,8 +185,7 @@ export function loadGenerationTurns(): StudioGenerationTurn[] {
 }
 
 export function saveGenerationTurns(turns: StudioGenerationTurn[]): void {
-  if (!isBrowser()) return;
-  window.localStorage.setItem(KEYS.TURNS, JSON.stringify(turns));
+  if (isBrowser()) window.localStorage.setItem(KEYS.TURNS, JSON.stringify(turns));
 }
 
 export function loadAudioTurns(): AudioStudioTurn[] {
@@ -177,8 +199,7 @@ export function loadAudioTurns(): AudioStudioTurn[] {
 }
 
 export function saveAudioTurns(turns: AudioStudioTurn[]): void {
-  if (!isBrowser()) return;
-  window.localStorage.setItem(KEYS.AUDIO, JSON.stringify(turns));
+  if (isBrowser()) window.localStorage.setItem(KEYS.AUDIO, JSON.stringify(turns));
 }
 
 export function loadChatConversations(): ChatConversation[] {
@@ -192,6 +213,5 @@ export function loadChatConversations(): ChatConversation[] {
 }
 
 export function saveChatConversations(items: ChatConversation[]): void {
-  if (!isBrowser()) return;
-  window.localStorage.setItem(KEYS.CHATS, JSON.stringify(items));
+  if (isBrowser()) window.localStorage.setItem(KEYS.CHATS, JSON.stringify(items));
 }

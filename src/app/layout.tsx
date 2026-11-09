@@ -17,9 +17,9 @@ const notoThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  title: "GenWhy × Mantra · AI Creative Studio Suite",
+  title: "Neramit AI (เนรมิต AI) · Unified Omni-Studio & Ad Production Suite",
   description:
-    "Neumorphic AI Creative Suite for 4K Image Generation, 16-Layer Decomposition, Multi-Mode Video Ads, Seed Audio 1.0, and Rich @img Prompt Composer.",
+    "Flagship Hybrid Tactile Glass + Neumorphic AI Studio with Image-to-Video Pipeline Chaining, True @-Autocomplete Chip Composer, HTML5 Mask Painter, and Hybrid API Key Vault.",
 };
 
 export default function RootLayout({

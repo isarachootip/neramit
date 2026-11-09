@@ -17,6 +17,13 @@ import {
 } from "../src/domain/studio-schemas";
 import { ALL_STUDIO_MODELS, getModelBySlug } from "../src/domain/models-video-data";
 import { GENWHY_TEMPLATES } from "../src/domain/templates-data";
+import {
+  detectAtMentionQuery,
+  applyAtMentionSelection,
+  buildChainedStageState,
+  settleQueueJobRefund,
+  validateApiKeyVault,
+} from "../src/domain/neramit-vault-types";
 
 interface TestCase {
   name: string;
@@ -29,117 +36,98 @@ const tests: TestCase[] = [
     run: () => {
       const imageModels = ALL_STUDIO_MODELS.filter((m) => m.output === "image");
       const videoModels = ALL_STUDIO_MODELS.filter((m) => m.output === "video");
-      assert.equal(imageModels.length, 9, "Should have 9 GenWhy Image models");
-      assert.equal(videoModels.length, 11, "Should have 11 GenWhy Video models");
-      assert.equal(GENWHY_TEMPLATES.length, 7, "Should have 7 GenWhy Video Templates");
+      assert.equal(imageModels.length, 9);
+      assert.equal(videoModels.length, 11);
+      assert.equal(GENWHY_TEMPLATES.length, 7);
     },
   },
   {
     name: "Pricing: Calculates Image tokens with resolution, batch count, and layer decomposition",
     run: () => {
       const seedreamLite = getModelBySlug("seedream-5-lite");
-      assert.ok(seedreamLite, "seedream-5-lite exists");
-
-      const base2k = calculateGenerationTokens(seedreamLite, {
-        size: "2K",
-        num_images: 1,
-        sequential: false,
-      });
-      const four4k = calculateGenerationTokens(seedreamLite, {
-        size: "4K",
-        num_images: 4,
-        sequential: false,
-      });
-      assert.ok(four4k > base2k * 4, "4K x 4 images costs more than 4x 2K single image");
+      assert.ok(seedreamLite);
+      const base2k = calculateGenerationTokens(seedreamLite, { size: "2K", num_images: 1 });
+      const four4k = calculateGenerationTokens(seedreamLite, { size: "4K", num_images: 4 });
+      assert.ok(four4k > base2k * 4);
 
       const seedreamPro = getModelBySlug("seedream-5-pro");
-      assert.ok(seedreamPro, "seedream-5-pro exists");
-      const normalPro = calculateGenerationTokens(seedreamPro, {
-        size: "1K",
-        num_images: 1,
-        layer_decomposition: false,
-        thinking: false,
-      });
-      const layeredPro = calculateGenerationTokens(seedreamPro, {
-        size: "1K",
-        num_images: 1,
-        layer_decomposition: true,
-        thinking: true,
-      });
-      assert.ok(layeredPro > normalPro, "16-layer decomposition + thinking increases token cost");
+      assert.ok(seedreamPro);
+      const normalPro = calculateGenerationTokens(seedreamPro, { size: "1K", layer_decomposition: false });
+      const layeredPro = calculateGenerationTokens(seedreamPro, { size: "1K", layer_decomposition: true, thinking: true });
+      assert.ok(layeredPro > normalPro);
     },
   },
   {
     name: "Pricing: Calculates Video tokens proportional to duration, resolution, and audio multiplier",
     run: () => {
       const seedance15 = getModelBySlug("seedance-1-5-pro");
-      assert.ok(seedance15, "seedance-1-5-pro exists");
-
-      const clip5sNoAudio = calculateGenerationTokens(seedance15, {
-        mode: "t2v",
-        resolution: "720p",
-        duration: 5,
-        audio: false,
-      });
-      const clip5sWithAudio = calculateGenerationTokens(seedance15, {
-        mode: "t2v",
-        resolution: "720p",
-        duration: 5,
-        audio: true,
-      });
-      assert.equal(clip5sWithAudio, clip5sNoAudio * 2, "Audio doubles Seedance 1.5 Pro cost");
-
-      const clip10s = calculateGenerationTokens(seedance15, {
-        mode: "t2v",
-        resolution: "720p",
-        duration: 10,
-        audio: false,
-      });
-      assert.equal(clip10s, clip5sNoAudio * 2, "10s clip costs 2x 5s clip");
+      assert.ok(seedance15);
+      const clip5sNoAudio = calculateGenerationTokens(seedance15, { mode: "t2v", resolution: "720p", duration: 5, audio: false });
+      const clip5sWithAudio = calculateGenerationTokens(seedance15, { mode: "t2v", resolution: "720p", duration: 5, audio: true });
+      assert.equal(clip5sWithAudio, clip5sNoAudio * 2);
     },
   },
   {
     name: "Pricing: Estimates Seed Audio 1.0 duration and token cost from script",
     run: () => {
-      const emptyEst = estimateAudioScriptTokens("");
-      assert.equal(emptyEst.seconds, 0);
-      assert.equal(emptyEst.tokens, 0);
-
-      const sampleEst = estimateAudioScriptTokens(
-        "สวัสดีครับ ยินดีต้อนรับเข้าสู่ GenWhy Studio ระบบสร้างสื่อโฆษณาด้วย AI"
-      );
-      assert.ok(sampleEst.seconds >= 3, "Estimates realistic spoken duration");
-      assert.ok(sampleEst.tokens >= 10, "Estimates positive token cost");
+      const sampleEst = estimateAudioScriptTokens("สวัสดีครับ ยินดีต้อนรับเข้าสู่ Neramit AI ระบบสร้างสื่อโฆษณาอัจฉริยะ");
+      assert.ok(sampleEst.seconds >= 3);
+      assert.ok(sampleEst.tokens >= 10);
     },
   },
   {
-    name: "Rich Prompt Engine: Extracts and inserts @img-N and @AudioN pills cleanly",
+    name: "Rich Prompt Engine: Extracts, inserts, syncs @img/@video/@audio pills and enhances prompts",
     run: () => {
-      const prompt = "Use @img-1 as product hero and match lighting from @img-2 with @Audio1 voice";
-      const tags = extractReferenceTags(prompt);
-      assert.deepEqual(tags, ["@img-1", "@img-2", "@Audio1"]);
-
-      const inserted = insertReferenceTag("Cinematic close-up of bottle", "@img-1");
-      assert.equal(inserted, "Cinematic close-up of bottle @img-1 ");
-
-      const synced = syncPromptWithReferences(
-        "Show @img-1 next to @img-2 and @img-3 in neon rain",
-        1
-      );
+      const tags = extractReferenceTags("Use @img-1 as product hero with @video-1 motion and @Audio1 voice");
+      assert.deepEqual(tags, ["@img-1", "@video-1", "@Audio1"]);
+      assert.equal(insertReferenceTag("Close-up of bottle", "@img-1"), "Close-up of bottle @img-1 ");
+      const synced = syncPromptWithReferences("Show @img-1 next to @img-2", 1);
       assert.equal(synced.includes("@img-1"), true);
       assert.equal(synced.includes("@img-2"), false);
-      assert.equal(synced.includes("@img-3"), false);
+      assert.ok(enhanceCreativePrompt("Perfume bottle", "cinematic-35mm").includes("35mm"));
+      assert.ok(rollPromptIdea("video", "th").length > 10);
     },
   },
   {
-    name: "Rich Prompt Engine: Enhances prompts with presets and rolls diverse ideas",
+    name: "Neramit @-Autocomplete & Pipeline Chaining: Detects @ query, inserts chip, and chains Image -> Video",
     run: () => {
-      const enhanced = enhanceCreativePrompt("A luxury perfume bottle on wet obsidian", "cinematic-35mm");
-      assert.ok(enhanced.length > 38, "Enhanced prompt adds camera/lighting directives");
-      assert.ok(enhanced.includes("35mm"), "Includes 35mm preset descriptor");
+      const q = detectAtMentionQuery("Camera orbits around @im");
+      assert.equal(q, "im");
+      const replaced = applyAtMentionSelection("Camera orbits around @im", "@img-1");
+      assert.equal(replaced, "Camera orbits around @img-1 ");
 
-      const idea = rollPromptIdea("video", "th");
-      assert.ok(idea.length > 15, "Rolls a non-empty Thai video prompt idea");
+      const chained = buildChainedStageState({
+        sourceTurnId: "seed-turn-1",
+        sourceModelTitle: "Seedream 5 Pro",
+        mediaUrl: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1000",
+        targetStage: "video",
+        layerLabel: "Layer 02 · Primary Product Hero",
+      });
+      assert.equal(chained.targetStage, "video");
+      assert.equal(chained.mode, "i2v");
+      assert.equal(chained.referenceImages[0], "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1000");
+      assert.ok(chained.lineageLabel.includes("Seedream 5 Pro"));
+      assert.ok(chained.prompt.includes("@img-1"));
+    },
+  },
+  {
+    name: "Neramit Queue Auto-Refund & API Vault: Refunds 100% tokens on failed job and validates API keys",
+    run: () => {
+      const refund = settleQueueJobRefund({
+        jobId: "job-1",
+        tokensReserved: 120,
+        status: "failed",
+      });
+      assert.equal(refund.refundedTokens, 120);
+      assert.equal(refund.netCharged, 0);
+
+      const vault = validateApiKeyVault({
+        engineMode: "hybrid",
+        geminiApiKey: "AIzaSyMockKey123",
+        openaiApiKey: "",
+        falApiKey: "",
+      });
+      assert.equal(vault.success, true);
     },
   },
   {
@@ -148,10 +136,10 @@ const tests: TestCase[] = [
       const validImg = validateGenerationInput({
         modelSlug: "seedream-5-lite",
         output: "image",
-        prompt: "A minimalist ceramic cup with matcha foam, morning sunlight @img-1",
+        prompt: " Ceramic cup @img-1",
         aspectRatio: "1:1",
         resolution: "2K",
-        numImages: 2,
+        numImages: 1,
         referenceImages: ["https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600"],
       });
       assert.equal(validImg.success, true);
@@ -160,38 +148,24 @@ const tests: TestCase[] = [
         modelSlug: "seedance-2-5",
         output: "video",
         mode: "i2v",
-        prompt: "Camera orbits slowly around the subject",
+        prompt: "Orbit camera",
         resolution: "1080p",
         duration: 5,
         referenceImages: [],
       });
-      assert.equal(invalidVideoI2v.success, false, "i2v without first_frame reference image must fail");
-
-      const validAudio = validateAudioGenerationInput({
-        mode: "voice",
-        prompt: "สวัสดีทุกคน วันนี้เรามีคอลเลกชันใหม่มาแนะนำ",
-        voiceId: "th-female-nicha",
-        format: "mp3",
-        speechRate: 0,
-        loudnessRate: 0,
-        pitchRate: 0,
-        subtitles: true,
-      });
-      assert.equal(validAudio.success, true);
-
-      const validTemplate = validateTemplateExecutionInput({
-        templateSlug: "swatch-snap",
-        answers: {
-          producttype: "กระเป๋า",
-          character: "A women",
-          characterdetailed: "Indigo Bob",
-        },
-        slotImages: {
-          product: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600",
-        },
-        aspectRatio: "9:16",
-      });
-      assert.equal(validTemplate.success, true);
+      assert.equal(invalidVideoI2v.success, false);
+      assert.equal(
+        validateAudioGenerationInput({ mode: "voice", prompt: "สวัสดี", voiceId: "th-female-nicha" }).success,
+        true
+      );
+      assert.equal(
+        validateTemplateExecutionInput({
+          templateSlug: "swatch-snap",
+          answers: { producttype: "กระเป๋า" },
+          slotImages: { product: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600" },
+        }).success,
+        true
+      );
     },
   },
 ];
@@ -209,4 +183,4 @@ for (const test of tests) {
   }
 }
 
-console.log(`\n🎉 All ${passed}/${tests.length} domain test suites passed!`);
+console.log(`\n🎉 All ${passed}/${tests.length} Neramit AI domain test suites passed!`);

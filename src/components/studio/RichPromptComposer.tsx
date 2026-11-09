@@ -1,12 +1,17 @@
 "use client";
 
 import React from "react";
-import { Coins, Dices, Sparkles, Wand2 } from "lucide-react";
+import { Coins, Dices, GitBranch, Sparkles, Wand2 } from "lucide-react";
+import {
+  applyAtMentionSelection,
+  detectAtMentionQuery,
+} from "@/domain/neramit-vault-types";
 import {
   extractReferenceTags,
   PROMPT_STYLE_PRESETS,
 } from "@/domain/rich-prompt-engine";
 import { StudioLocale } from "@/domain/studio-types";
+import { AtMentionPopover } from "./AtMentionPopover";
 
 interface RichPromptComposerProps {
   prompt: string;
@@ -21,8 +26,8 @@ interface RichPromptComposerProps {
   tokenDelta: number;
   maxChars: number;
   placeholder: string;
-  referenceCount: number;
-  onInsertTag: (tag: string) => void;
+  referenceImages: string[];
+  lineageLabel?: string;
   errorMessage: string | null;
   locale: StudioLocale;
 }
@@ -40,19 +45,37 @@ export function RichPromptComposer({
   tokenDelta,
   maxChars,
   placeholder,
-  referenceCount,
-  onInsertTag,
+  referenceImages,
+  lineageLabel,
   errorMessage,
   locale,
 }: RichPromptComposerProps) {
   const activeTags = extractReferenceTags(prompt);
+  const mentionQuery = detectAtMentionQuery(prompt);
+
+  const handleSelectMention = (tag: string) => {
+    onChangePrompt(applyAtMentionSelection(prompt, tag));
+  };
+
+  const handleRemoveTagFromPrompt = (tag: string) => {
+    const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const next = prompt.replace(new RegExp(escaped, "g"), "").replace(/\s{2,}/g, " ").trim();
+    onChangePrompt(next);
+  };
 
   return (
-    <div className="neu-raised neu-grain flex flex-col gap-3 rounded-3xl p-4 sm:p-5">
+    <div className="neramit-glass neu-grain flex flex-col gap-3 rounded-3xl p-4 sm:p-5">
+      {lineageLabel && (
+        <div className="flex items-center gap-2 rounded-2xl bg-violet-500/15 px-3 py-1.5 text-xs font-bold text-violet-300">
+          <GitBranch className="size-3.5" />
+          <span>Pipeline Active: {lineageLabel}</span>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-            {locale === "th" ? "สไตล์ภาพ (Mantra Presets):" : "Style Presets:"}
+            {locale === "th" ? "พรีเซ็ตโฆษณา:" : "Ad Presets:"}
           </span>
           {PROMPT_STYLE_PRESETS.map((preset) => (
             <button
@@ -72,7 +95,7 @@ export function RichPromptComposer({
           <button
             type="button"
             onClick={onRollIdea}
-            className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-transform active:scale-95"
+            className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold"
           >
             <Dices className="size-3.5 text-violet-400" />
             <span>{locale === "th" ? "สุ่มไอเดีย" : "Roll Idea"}</span>
@@ -80,7 +103,7 @@ export function RichPromptComposer({
           <button
             type="button"
             onClick={onEnhancePrompt}
-            className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-transform active:scale-95"
+            className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold"
           >
             <Wand2 className="size-3.5 text-amber-400" />
             <span>{locale === "th" ? "AI อัปเกรด Prompt" : "AI Enhance"}</span>
@@ -88,31 +111,14 @@ export function RichPromptComposer({
         </div>
       </div>
 
-      {(activeTags.length > 0 || referenceCount > 0) && (
-        <div className="flex flex-wrap items-center gap-1.5 rounded-2xl px-3 py-2 neu-pressed">
-          <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">
-            {locale === "th" ? "ตัวแปรอ้างอิงใน Prompt:" : "Active Reference Pills:"}
-          </span>
-          {Array.from({ length: Math.max(referenceCount, 2) }).map((_, i) => {
-            const tag = `@img-${i + 1}`;
-            const isUsed = activeTags.includes(tag);
-            return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => onInsertTag(tag)}
-                className={`rounded-lg px-2 py-0.5 text-xs font-bold transition-all ${
-                  isUsed
-                    ? "neu-tint-primary"
-                    : "neu-flat text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                {tag} {isUsed ? "✓" : "+"}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <AtMentionPopover
+        query={mentionQuery}
+        referenceImages={referenceImages}
+        activeTags={activeTags}
+        onSelectMention={handleSelectMention}
+        onRemoveTagFromPrompt={handleRemoveTagFromPrompt}
+        locale={locale}
+      />
 
       <textarea
         rows={3}
@@ -129,7 +135,7 @@ export function RichPromptComposer({
       />
 
       {errorMessage && (
-        <div className="rounded-xl bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-400">
+        <div className="rounded-xl bg-amber-500/15 px-3 py-2 text-xs font-bold text-amber-300">
           {errorMessage}
         </div>
       )}
@@ -137,7 +143,7 @@ export function RichPromptComposer({
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <span className="tabular-nums text-xs text-[var(--muted-foreground)]">
           {prompt.length.toLocaleString()} / {maxChars.toLocaleString()} chars ·{" "}
-          <span className="hidden sm:inline">Ctrl+Enter to Generate</span>
+          <span className="hidden sm:inline">Type @ to mention assets · Ctrl+Enter to Run</span>
         </span>
 
         <div className="flex items-center gap-3">
@@ -168,7 +174,7 @@ export function RichPromptComposer({
                   ? "กำลังเนรมิต..."
                   : "Rendering..."
                 : locale === "th"
-                ? "สร้างผลงาน"
+                ? "เนรมิตผลงาน"
                 : "Generate"}
             </span>
           </button>

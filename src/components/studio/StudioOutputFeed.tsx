@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Coins, Download, Layers, RotateCcw, Sparkles } from "lucide-react";
+import { Coins, Download, Film, GitBranch, Layers, Mic, RotateCcw, Sparkles } from "lucide-react";
+import { PipelineChainPayload } from "@/domain/neramit-vault-types";
 import { StudioGenerationTurn, StudioLocale } from "@/domain/studio-types";
 
 interface StudioOutputFeedProps {
   turns: StudioGenerationTurn[];
   isGenerating: boolean;
   onReuseTurn: (turn: StudioGenerationTurn) => void;
+  onChainStage: (payload: PipelineChainPayload) => void;
   locale: StudioLocale;
 }
 
@@ -15,6 +17,7 @@ export function StudioOutputFeed({
   turns,
   isGenerating,
   onReuseTurn,
+  onChainStage,
   locale,
 }: StudioOutputFeedProps) {
   const [expandedLayerTurnId, setExpandedLayerTurnId] = useState<string | null>(
@@ -25,7 +28,7 @@ export function StudioOutputFeed({
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-          {locale === "th" ? "ไทม์ไลน์ผลลัพธ์ (Studio Feed)" : "Studio Output Feed"}
+          {locale === "th" ? "สายพานผลลัพธ์ (Neramit Pipeline Feed)" : "Neramit Pipeline Output Feed"}
         </h2>
         <span className="text-xs text-[var(--muted-foreground)]">
           {turns.length} {locale === "th" ? "รายการ" : "turns"}
@@ -33,12 +36,12 @@ export function StudioOutputFeed({
       </div>
 
       {isGenerating && (
-        <div className="neu-raised neu-shimmer flex h-56 flex-col items-center justify-center gap-2 rounded-3xl p-6 text-center">
+        <div className="neu-raised neu-shimmer flex h-52 flex-col items-center justify-center gap-2 rounded-3xl p-6 text-center">
           <Sparkles className="size-7 animate-spin text-violet-400" />
           <p className="text-sm font-bold">
             {locale === "th"
-              ? "กำลังประมวลผลด้วย AI Cluster..."
-              : "Rendering on GenWhy GPU Cluster..."}
+              ? "กำลังประมวลผลบน Neramit Hybrid Cluster..."
+              : "Rendering on Neramit Hybrid Cluster..."}
           </p>
         </div>
       )}
@@ -48,7 +51,7 @@ export function StudioOutputFeed({
         return (
           <article
             key={turn.id}
-            className="neu-raised neu-grain flex flex-col gap-4 rounded-3xl p-4 sm:p-5"
+            className="neramit-glass neu-grain flex flex-col gap-4 rounded-3xl p-4 sm:p-5"
           >
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -60,9 +63,12 @@ export function StudioOutputFeed({
                     {turn.mode}
                   </span>
                 )}
-                <span className="neu-pressed rounded-full px-2.5 py-0.5 text-[11px] font-semibold">
-                  {turn.resolution} · {turn.aspectRatio}
-                </span>
+                {turn.lineageLabel && (
+                  <span className="flex items-center gap-1 rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[11px] font-bold text-violet-300">
+                    <GitBranch className="size-3" />
+                    <span>{turn.lineageLabel}</span>
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -73,7 +79,7 @@ export function StudioOutputFeed({
                 <button
                   type="button"
                   onClick={() => onReuseTurn(turn)}
-                  className="neu-flat flex items-center gap-1 rounded-xl px-2.5 py-1 text-xs font-semibold transition-transform active:scale-95"
+                  className="neu-flat flex items-center gap-1 rounded-xl px-2.5 py-1 text-xs font-semibold"
                 >
                   <RotateCcw className="size-3.5" />
                   <span>{locale === "th" ? "ใช้ซ้ำ" : "Reuse"}</span>
@@ -92,29 +98,19 @@ export function StudioOutputFeed({
                     key={`${turn.id}-vid-${idx}`}
                     className="neu-pressed relative overflow-hidden rounded-2xl bg-black/40"
                   >
-                    <video
-                      src={url}
-                      controls
-                      loop
-                      playsInline
-                      className="max-h-[420px] w-full object-contain"
-                    />
+                    <video src={url} controls loop playsInline className="max-h-[400px] w-full object-contain" />
                   </div>
                 ) : (
                   <div
                     key={`${turn.id}-img-${idx}`}
                     className="neu-pressed group relative overflow-hidden rounded-2xl"
                   >
-                    <img
-                      src={url}
-                      alt={turn.prompt}
-                      className="max-h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                    />
+                    <img src={url} alt={turn.prompt} className="max-h-[400px] w-full object-cover" />
                     <a
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="neu-raised absolute bottom-3 right-3 flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold opacity-90"
+                      className="neu-raised absolute bottom-3 right-3 flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold"
                     >
                       <Download className="size-3.5" />
                       <span>HD</span>
@@ -124,45 +120,84 @@ export function StudioOutputFeed({
               )}
             </div>
 
-            {turn.layers && turn.layers.length > 0 && (
-              <div className="flex flex-col gap-2.5 pt-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-2">
+                {turn.output === "image" && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChainStage({
+                        sourceTurnId: turn.id,
+                        sourceModelTitle: turn.modelTitle,
+                        mediaUrl: turn.resultUrls[0],
+                        targetStage: "video",
+                      })
+                    }
+                    className="neu-tint-primary flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold"
+                  >
+                    <Film className="size-3.5" />
+                    <span>
+                      {locale === "th"
+                        ? "ส่งภาพนี้ไปสร้างวิดีโอ I2V (@img-1)"
+                        : "Chain to Video I2V (@img-1)"}
+                    </span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() =>
-                    setExpandedLayerTurnId(showLayers ? null : turn.id)
+                    onChainStage({
+                      sourceTurnId: turn.id,
+                      sourceModelTitle: turn.modelTitle,
+                      mediaUrl: turn.resultUrls[0],
+                      targetStage: "audio",
+                    })
                   }
-                  className="neu-flat flex w-fit items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold text-violet-400"
+                  className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold"
                 >
-                  <Layers className="size-3.5" />
+                  <Mic className="size-3.5 text-violet-400" />
                   <span>
-                    {locale === "th"
-                      ? `แยกเลเยอร์พื้นหลังใส (${turn.layers.length} ชั้น - Seedream 5 Pro)`
-                      : `Inspect Decomposed Transparent Layers (${turn.layers.length})`}
+                    {locale === "th" ? "ส่งไปพากย์เสียงโฆษณา" : "Chain to Voiceover"}
                   </span>
                 </button>
 
-                {showLayers && (
-                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                    {turn.layers.map((layer) => (
-                      <div
-                        key={layer.index}
-                        className="neu-pressed flex flex-col gap-1.5 rounded-2xl p-2"
-                      >
-                        <img
-                          src={layer.previewUrl}
-                          alt={layer.label}
-                          className="h-24 w-full rounded-xl object-cover"
-                        />
-                        <span className="truncate text-[11px] font-bold">
-                          #{layer.index} {layer.label}
-                        </span>
-                        <span className="text-[10px] text-[var(--muted-foreground)]">
-                          Alpha PNG · Opacity {layer.opacity}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                {turn.layers && turn.layers.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setExpandedLayerTurnId(showLayers ? null : turn.id)}
+                    className="neu-flat flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold text-violet-400"
+                  >
+                    <Layers className="size-3.5" />
+                    <span>{turn.layers.length} Transparent Layers</span>
+                  </button>
                 )}
+              </div>
+            </div>
+
+            {showLayers && turn.layers && (
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                {turn.layers.map((layer) => (
+                  <div key={layer.index} className="neu-pressed flex flex-col gap-1.5 rounded-2xl p-2">
+                    <img src={layer.previewUrl} alt={layer.label} className="h-24 w-full rounded-xl object-cover" />
+                    <span className="truncate text-[11px] font-bold">#{layer.index} {layer.label}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onChainStage({
+                          sourceTurnId: turn.id,
+                          sourceModelTitle: turn.modelTitle,
+                          mediaUrl: layer.previewUrl,
+                          targetStage: "video",
+                          layerLabel: layer.label,
+                        })
+                      }
+                      className="neu-flat rounded-lg py-1 text-[10px] font-extrabold text-violet-300"
+                    >
+                      Animate Layer → I2V
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </article>

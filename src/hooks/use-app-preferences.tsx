@@ -2,10 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { I18N_DICTIONARY, I18nStrings } from "../domain/i18n-catalog";
+import { ApiKeyVaultConfig } from "../domain/neramit-vault-types";
 import { StudioLocale, StudioTheme } from "../domain/studio-types";
 import {
+  loadApiKeyVault,
   loadUiPreferences,
   loadWalletBalance,
+  saveApiKeyVault,
   saveUiPreferences,
   saveWalletBalance,
 } from "../repositories/studio-storage";
@@ -21,6 +24,8 @@ interface AppPreferencesContextValue {
   setPayWithTeam: (val: boolean) => void;
   spendTokens: (amount: number) => boolean;
   topUpTokens: (amount: number) => void;
+  apiVault: ApiKeyVaultConfig;
+  updateApiVault: (next: ApiKeyVaultConfig) => void;
 }
 
 const AppPreferencesContext = createContext<AppPreferencesContextValue | null>(null);
@@ -30,6 +35,12 @@ export function AppPreferencesProvider({ children }: { children: React.ReactNode
   const [locale, setLocaleState] = useState<StudioLocale>("th");
   const [payWithTeam, setPayWithTeamState] = useState<boolean>(false);
   const [tokenBalance, setTokenBalance] = useState<number>(2500);
+  const [apiVault, setApiVaultState] = useState<ApiKeyVaultConfig>({
+    engineMode: "hybrid",
+    geminiApiKey: "",
+    openaiApiKey: "",
+    falApiKey: "",
+  });
 
   useEffect(() => {
     const prefs = loadUiPreferences();
@@ -37,6 +48,7 @@ export function AppPreferencesProvider({ children }: { children: React.ReactNode
     setLocaleState(prefs.locale);
     setPayWithTeamState(prefs.payWithTeam);
     setTokenBalance(loadWalletBalance());
+    setApiVaultState(loadApiKeyVault());
   }, []);
 
   useEffect(() => {
@@ -64,9 +76,7 @@ export function AppPreferencesProvider({ children }: { children: React.ReactNode
   };
 
   const spendTokens = (amount: number): boolean => {
-    if (tokenBalance < amount) {
-      return false;
-    }
+    if (tokenBalance < amount) return false;
     const next = tokenBalance - amount;
     setTokenBalance(next);
     saveWalletBalance(next);
@@ -74,9 +84,16 @@ export function AppPreferencesProvider({ children }: { children: React.ReactNode
   };
 
   const topUpTokens = (amount: number) => {
-    const next = tokenBalance + amount;
-    setTokenBalance(next);
-    saveWalletBalance(next);
+    setTokenBalance((prev) => {
+      const next = prev + amount;
+      saveWalletBalance(next);
+      return next;
+    });
+  };
+
+  const updateApiVault = (next: ApiKeyVaultConfig) => {
+    setApiVaultState(next);
+    saveApiKeyVault(next);
   };
 
   return (
@@ -92,6 +109,8 @@ export function AppPreferencesProvider({ children }: { children: React.ReactNode
         setPayWithTeam,
         spendTokens,
         topUpTokens,
+        apiVault,
+        updateApiVault,
       }}
     >
       {children}

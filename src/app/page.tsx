@@ -35,7 +35,7 @@ export default function HomePage() {
       <section className="neu-raised neu-mesh-card neu-grain flex flex-col items-start justify-between gap-4 rounded-3xl p-6 sm:p-8">
         <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold neu-pressed">
           <Sparkles className="size-3.5 text-violet-400" />
-          <span>GenWhy.app Neumorphic Studio × Mantra.ad Rich @img Composer</span>
+          <span>Neramit AI (เนรมิต AI) · Unified Omni-Studio & Pipeline Chaining</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">{greeting}</h1>
         <p className="max-w-3xl text-xs sm:text-sm leading-relaxed text-[var(--muted-foreground)]">{t.home.subtitle}</p>

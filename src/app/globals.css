@@ -119,9 +119,18 @@ body {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(120% 100% at 95% 0%, rgba(139, 92, 246, 0.16), transparent 60%),
-    radial-gradient(90% 90% at 0% 100%, rgba(59, 130, 246, 0.12), transparent 60%),
+    radial-gradient(120% 100% at 95% 0%, rgba(139, 92, 246, 0.2), transparent 60%),
+    radial-gradient(90% 90% at 0% 100%, rgba(20, 184, 166, 0.14), transparent 60%),
     var(--surface);
+}
+
+.neramit-glass {
+  background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--border-control);
+  box-shadow:
+    var(--neu-offset) var(--neu-offset) var(--neu-blur) var(--neu-dark),
+    inset 0 1px 1px rgba(255, 255, 255, 0.14);
 }
 
 @keyframes neuShimmer {

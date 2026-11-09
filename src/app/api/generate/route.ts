@@ -21,15 +21,32 @@ const SAMPLE_VIDEO_POOL: string[] = [
   "https://cdn.genwhy.app/templates/41f28602-ee7f-431d-abf8-71e690e4c48c/cover-video.mp4",
 ];
 
+interface ExtendedRequestPayload {
+  lineageLabel?: string;
+  simulateFailure?: boolean;
+  providerHint?: string;
+}
+
 export async function POST(request: Request) {
   try {
-    const rawBody: unknown = await request.json();
-    const parsed = validateGenerationInput(rawBody);
+    const rawBody = (await request.json()) as Record<string, unknown> & ExtendedRequestPayload;
 
+    if (rawBody.simulateFailure) {
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      return NextResponse.json(
+        {
+          error: "GPU Cluster timeout simulated — 100% Tokens Auto-Refunded to your wallet",
+          refunded: true,
+        },
+        { status: 503 }
+      );
+    }
+
+    const parsed = validateGenerationInput(rawBody);
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
       return NextResponse.json(
-        { error: firstIssue?.message ?? "Invalid generation parameters" },
+        { error: firstIssue?.message ?? "Invalid generation parameters", refunded: true },
         { status: 400 }
       );
     }
@@ -37,7 +54,7 @@ export async function POST(request: Request) {
     const input = parsed.data;
     const model = getModelBySlug(input.modelSlug);
     if (!model) {
-      return NextResponse.json({ error: "Model not found" }, { status: 404 });
+      return NextResponse.json({ error: "Model not found", refunded: true }, { status: 404 });
     }
 
     const tokensCharged = calculateGenerationTokens(model, {
@@ -97,12 +114,14 @@ export async function POST(request: Request) {
       maskDataUrl: input.maskDataUrl,
       resultUrls,
       layers,
+      lineageLabel: rawBody.lineageLabel ?? `Origin · ${model.title}`,
+      providerUsed: rawBody.providerHint || "Neramit Simulation Engine",
     };
 
     return NextResponse.json({ turn });
   } catch {
     return NextResponse.json(
-      { error: "Failed to process generation request" },
+      { error: "Failed to process generation request", refunded: true },
       { status: 500 }
     );
   }
