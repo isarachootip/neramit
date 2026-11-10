@@ -6,11 +6,17 @@ export const SocialChannelIdSchema = z.enum([
   "instagram",
   "youtube",
   "tiktok",
+  "line",
+  "linkedin",
+  "threads",
+  "telegram",
 ]);
 
 export type SocialChannelId = z.infer<typeof SocialChannelIdSchema>;
 export type SocialMediaKind = "none" | "image" | "video";
 export type SocialPostStatus = "published" | "partial_failure" | "failed" | "scheduled";
+export type AutoPostBridgeProvider = "vibepost" | "webhook" | "upload_post";
+export type AutoPostRoutingMode = "bridge_fallback" | "bridge_primary" | "direct_only";
 
 export interface SocialChannelMetadata {
   id: SocialChannelId;
@@ -27,6 +33,10 @@ export const SOCIAL_CHANNELS: SocialChannelMetadata[] = [
   { id: "instagram", label: "Instagram", accentHex: "#E1306C", maxChars: 2200, requiresVideo: false, requiresMedia: true },
   { id: "youtube", label: "YouTube Shorts", accentHex: "#FF0000", maxChars: 5000, requiresVideo: true, requiresMedia: true },
   { id: "tiktok", label: "TikTok", accentHex: "#2dd4bf", maxChars: 2200, requiresVideo: true, requiresMedia: true },
+  { id: "line", label: "LINE OA", accentHex: "#06C755", maxChars: 2000, requiresVideo: false, requiresMedia: false },
+  { id: "linkedin", label: "LinkedIn", accentHex: "#0A66C2", maxChars: 3000, requiresVideo: false, requiresMedia: false },
+  { id: "threads", label: "Threads", accentHex: "#a855f7", maxChars: 500, requiresVideo: false, requiresMedia: false },
+  { id: "telegram", label: "Telegram", accentHex: "#229ED9", maxChars: 4096, requiresVideo: false, requiresMedia: false },
 ];
 
 export interface StoredChannelCredential {
@@ -49,12 +59,38 @@ export interface PublicChannelConnection {
   dryRun: boolean;
 }
 
+export interface AutoPostBridgeConfig {
+  enabled: boolean;
+  provider: AutoPostBridgeProvider;
+  endpointUrl: string;
+  encryptedBridgeKey: string;
+  encryptedWebhookSecret: string;
+  routingMode: AutoPostRoutingMode;
+}
+
+export interface PublicAutoPostBridgeConfig {
+  enabled: boolean;
+  provider: AutoPostBridgeProvider;
+  endpointUrl: string;
+  maskedBridgeKey: string;
+  maskedWebhookSecret: string;
+  routingMode: AutoPostRoutingMode;
+}
+
+export interface DiscoveredSocialTarget {
+  id: string;
+  label: string;
+  handle: string;
+  accessToken?: string;
+}
+
 export interface BrandProfileRecord {
   id: string;
   name: string;
   voiceTone: string;
   defaultHashtags: string[];
   channels: Record<SocialChannelId, StoredChannelCredential>;
+  bridge?: AutoPostBridgeConfig;
 }
 
 export interface PublicBrandProfile {
@@ -63,6 +99,7 @@ export interface PublicBrandProfile {
   voiceTone: string;
   defaultHashtags: string[];
   channels: Record<SocialChannelId, PublicChannelConnection>;
+  bridge: PublicAutoPostBridgeConfig;
 }
 
 export const PlatformCopyVariantSchema = z.object({
@@ -82,7 +119,7 @@ export interface ChannelPublishResult {
   externalPostUrl?: string;
   errorMessage?: string;
   publishedAt?: string;
-  modeUsed?: "live_api" | "dry_run";
+  modeUsed?: "live_api" | "autopost_bridge" | "dry_run";
   retryCount: number;
 }
 
@@ -129,10 +166,18 @@ export const UpsertBrandChannelSchema = z.object({
   voiceTone: z.string().trim().max(200).optional(),
   channel: SocialChannelIdSchema.optional(),
   accountHandle: z.string().trim().max(120).optional(),
-  externalTargetId: z.string().trim().max(120).optional(),
+  externalTargetId: z.string().trim().max(160).optional(),
   accessToken: z.string().trim().max(2048).optional(),
   refreshToken: z.string().trim().max(2048).optional(),
   dryRun: z.boolean().optional(),
+  bridge: z.object({
+    enabled: z.boolean(),
+    provider: z.enum(["vibepost", "webhook", "upload_post"]),
+    endpointUrl: z.string().trim().max(500),
+    bridgeKey: z.string().trim().max(1024).optional(),
+    webhookSecret: z.string().trim().max(512).optional(),
+    routingMode: z.enum(["bridge_fallback", "bridge_primary", "direct_only"]),
+  }).optional(),
 });
 
 export const RetrySocialChannelSchema = z.object({
@@ -140,47 +185,19 @@ export const RetrySocialChannelSchema = z.object({
   channels: z.array(SocialChannelIdSchema).optional(),
 });
 
-export function checkChannelMediaCompatibility(
-  selectedChannels: SocialChannelId[],
-  mediaKind: SocialMediaKind
-): {
-  compatible: SocialChannelId[];
-  requiresVideoConversion: SocialChannelId[];
-  requiresAnyMedia: SocialChannelId[];
-} {
-  const compatible: SocialChannelId[] = [];
-  const requiresVideoConversion: SocialChannelId[] = [];
-  const requiresAnyMedia: SocialChannelId[] = [];
+export const InboundAutoPostWebhookSchema = z.object({
+  postId: z.string().min(1),
+  channel: SocialChannelIdSchema,
+  status: z.enum(["published", "failed"]),
+  externalPostId: z.string().max(200).optional(),
+  externalPostUrl: z.string().max(500).optional(),
+  errorMessage: z.string().max(500).optional(),
+});
 
-  for (const chId of selectedChannels) {
-    const meta = SOCIAL_CHANNELS.find((c) => c.id === chId);
-    if (!meta) continue;
-    if (meta.requiresVideo && mediaKind !== "video") {
-      requiresVideoConversion.push(chId);
-    } else if (meta.requiresMedia && mediaKind === "none") {
-      requiresAnyMedia.push(chId);
-    } else {
-      compatible.push(chId);
-    }
-  }
-  return { compatible, requiresVideoConversion, requiresAnyMedia };
-}
-
-export function computePostAggregateStatus(
-  results: ChannelPublishResult[]
-): SocialPostStatus {
-  const publishedCount = results.filter((r) => r.status === "published").length;
-  const failedCount = results.filter((r) => r.status === "failed").length;
-  const pendingCount = results.filter((r) => r.status === "pending").length;
-
-  if (pendingCount > 0 && publishedCount === 0 && failedCount === 0) {
-    return "scheduled";
-  }
-  if (publishedCount > 0 && failedCount > 0) {
-    return "partial_failure";
-  }
-  if (publishedCount > 0 && failedCount === 0) {
-    return "published";
-  }
-  return "failed";
-}
+export {
+  applyInboundWebhookToPost,
+  checkChannelMediaCompatibility,
+  computePostAggregateStatus,
+  createEmptyCopyVariants,
+  shouldRouteViaAutoPostBridge,
+} from "./social-helpers";

@@ -45,3 +45,18 @@ export function maskSecretPreview(secret: string): string {
   if (trimmed.length <= 8) return "••••";
   return `${trimmed.slice(0, 4)}...${trimmed.slice(-4)}`;
 }
+
+export function signHmacSha256(payload: string, secret: string): string {
+  const effectiveSecret = secret.trim() || process.env.NERAMIT_WEBHOOK_SECRET?.trim() || FALLBACK_DEV_SEED;
+  const hex = crypto.createHmac("sha256", effectiveSecret).update(payload, "utf8").digest("hex");
+  return `sha256=${hex}`;
+}
+
+export function verifyHmacSha256(payload: string, signature: string, secret: string): boolean {
+  if (!signature) return false;
+  const expected = signHmacSha256(payload, secret);
+  const a = Buffer.from(expected, "utf8");
+  const b = Buffer.from(signature.trim(), "utf8");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
