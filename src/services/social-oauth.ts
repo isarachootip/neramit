@@ -44,6 +44,34 @@ const OAUTH_SPECS: Record<SocialChannelId, OAuthPlatformSpec> = {
     clientSecretEnv: "TIKTOK_CLIENT_SECRET",
     scopes: "user.info.basic,video.publish",
   },
+  line: {
+    authUrl: "https://access.line.me/oauth2/v2.1/authorize",
+    tokenUrl: "https://api.line.me/oauth2/v2.1/token",
+    clientIdEnv: "LINE_CHANNEL_ID",
+    clientSecretEnv: "LINE_CHANNEL_SECRET",
+    scopes: "profile openid",
+  },
+  linkedin: {
+    authUrl: "https://www.linkedin.com/oauth/v2/authorization",
+    tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
+    clientIdEnv: "LINKEDIN_CLIENT_ID",
+    clientSecretEnv: "LINKEDIN_CLIENT_SECRET",
+    scopes: "openid profile w_member_social",
+  },
+  threads: {
+    authUrl: "https://threads.net/oauth/authorize",
+    tokenUrl: "https://graph.threads.net/oauth/access_token",
+    clientIdEnv: "THREADS_APP_ID",
+    clientSecretEnv: "THREADS_APP_SECRET",
+    scopes: "threads_basic,threads_content_publish",
+  },
+  telegram: {
+    authUrl: "https://oauth.telegram.org/auth",
+    tokenUrl: "https://api.telegram.org",
+    clientIdEnv: "TELEGRAM_BOT_TOKEN",
+    clientSecretEnv: "TELEGRAM_BOT_TOKEN",
+    scopes: "channel:post",
+  },
 };
 
 export function buildOAuthAuthorizeRedirect(

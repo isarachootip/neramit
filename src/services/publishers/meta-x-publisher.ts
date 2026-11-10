@@ -6,16 +6,40 @@ import {
 } from "../../domain/social-types";
 import { decryptSecret } from "../../domain/token-crypto";
 
-function formatFullCaption(variant: PlatformCopyVariant, maxLen: number): string {
+export function formatFullCaption(variant: PlatformCopyVariant, maxLen: number): string {
   const tags = variant.hashtags.length > 0 ? `\n\n${variant.hashtags.join(" ")}` : "";
   const cta = variant.callToAction ? `\n👉 ${variant.callToAction}` : "";
   const combined = `${variant.caption}${cta}${tags}`.trim();
   return combined.length <= maxLen ? combined : `${combined.slice(0, maxLen - 1)}…`;
 }
 
+async function tryUploadMediaToX(token: string, publicMediaUrl?: string): Promise<string | null> {
+  if (!publicMediaUrl) return null;
+  try {
+    const mediaFetch = await fetch(publicMediaUrl, { signal: AbortSignal.timeout(20000) });
+    if (!mediaFetch.ok) return null;
+    const base64Data = Buffer.from(await mediaFetch.arrayBuffer()).toString("base64");
+    const uploadRes = await fetch("https://upload.twitter.com/1.1/media/upload.json", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ media_data: base64Data }),
+      signal: AbortSignal.timeout(25000),
+    });
+    const uploadJson = (await uploadRes.json()) as { media_id_string?: string };
+    return uploadRes.ok && uploadJson.media_id_string ? uploadJson.media_id_string : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function publishToX(
   cred: StoredChannelCredential,
   variant: PlatformCopyVariant,
+  mediaKind: SocialMediaKind,
+  publicMediaUrl: string | undefined,
   retryCount: number
 ): Promise<ChannelPublishResult> {
   const token = cred.encryptedAccessToken ? decryptSecret(cred.encryptedAccessToken) : "";
@@ -31,16 +55,18 @@ export async function publishToX(
     };
   }
 
+  const mediaId = mediaKind !== "none" ? await tryUploadMediaToX(token, publicMediaUrl) : null;
+  const tweetBody: Record<string, unknown> = { text: formatFullCaption(variant, 280) };
+  if (mediaId) tweetBody.media = { media_ids: [mediaId] };
+
   const res = await fetch("https://api.x.com/2/tweets", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ text: formatFullCaption(variant, 280) }),
+    body: JSON.stringify(tweetBody),
     signal: AbortSignal.timeout(25000),
   });
   const json = (await res.json()) as { data?: { id?: string }; detail?: string; title?: string };
-  if (!res.ok || !json.data?.id) {
-    throw new Error(json.detail ?? json.title ?? `X API v2 HTTP ${res.status}`);
-  }
+  if (!res.ok || !json.data?.id) throw new Error(json.detail ?? json.title ?? `X API v2 HTTP ${res.status}`);
   return {
     channel: "x",
     status: "published",
@@ -116,9 +142,7 @@ export async function publishToInstagram(
   publicMediaUrl: string | undefined,
   retryCount: number
 ): Promise<ChannelPublishResult> {
-  if (!publicMediaUrl || mediaKind === "none") {
-    throw new Error("Instagram requires an image or video asset");
-  }
+  if (!publicMediaUrl || mediaKind === "none") throw new Error("Instagram requires an image or video asset");
   const token = cred.encryptedAccessToken ? decryptSecret(cred.encryptedAccessToken) : "";
   if (cred.dryRun || !token) {
     return {
@@ -131,7 +155,6 @@ export async function publishToInstagram(
       retryCount,
     };
   }
-
   const igUserId = cred.externalTargetId?.trim();
   if (!igUserId) throw new Error("Instagram Business Account ID is required in Brand Settings");
 

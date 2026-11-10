@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   checkChannelMediaCompatibility,
+  createEmptyCopyVariants,
   PublicBrandProfile,
   SocialChannelId,
   SocialCopyVariantsMap,
@@ -17,14 +18,6 @@ import {
 } from "../services/social-client-api";
 import { useAppPreferences } from "./use-app-preferences";
 
-const INITIAL_VARIANTS: SocialCopyVariantsMap = {
-  x: { caption: "", hashtags: [] },
-  facebook: { caption: "", hashtags: [], callToAction: "" },
-  instagram: { caption: "", hashtags: [] },
-  youtube: { title: "", caption: "", hashtags: [] },
-  tiktok: { caption: "", hashtags: [] },
-};
-
 export function useSocialStudio(initialMedia?: { url: string; kind: "image" | "video"; prompt?: string }) {
   const { locale, spendTokens, topUpTokens, apiVault } = useAppPreferences();
   const [brands, setBrands] = useState<PublicBrandProfile[]>([]);
@@ -34,8 +27,14 @@ export function useSocialStudio(initialMedia?: { url: string; kind: "image" | "v
   const [topicIntro, setTopicIntro] = useState<string>(initialMedia?.prompt ?? "");
   const [mediaKind, setMediaKind] = useState<SocialMediaKind>(initialMedia?.kind ?? "none");
   const [mediaUrl, setMediaUrl] = useState<string>(initialMedia?.url ?? "");
-  const [selectedChannels, setSelectedChannels] = useState<SocialChannelId[]>(["x", "facebook", "instagram"]);
-  const [variants, setVariants] = useState<SocialCopyVariantsMap>(INITIAL_VARIANTS);
+  const [selectedChannels, setSelectedChannels] = useState<SocialChannelId[]>([
+    "x",
+    "facebook",
+    "instagram",
+    "line",
+    "threads",
+  ]);
+  const [variants, setVariants] = useState<SocialCopyVariantsMap>(() => createEmptyCopyVariants(""));
   const [scheduledAtLocal, setScheduledAtLocal] = useState<string>("");
 
   const [isGeneratingCopy, setIsGeneratingCopy] = useState<boolean>(false);
@@ -60,7 +59,7 @@ export function useSocialStudio(initialMedia?: { url: string; kind: "image" | "v
       setMediaKind(initialMedia.kind);
       if (initialMedia.prompt) setTopicIntro(initialMedia.prompt);
       if (initialMedia.kind === "video") {
-        setSelectedChannels(["x", "facebook", "instagram", "youtube", "tiktok"]);
+        setSelectedChannels(["x", "facebook", "instagram", "youtube", "tiktok", "line", "threads"]);
       }
     }
   }, [initialMedia]);
@@ -92,7 +91,7 @@ export function useSocialStudio(initialMedia?: { url: string; kind: "image" | "v
         return;
       }
       setVariants(res.variants);
-      setFeedback({ type: "ok", text: `${res.providerUsed ?? "AI"} · สร้างแคปชันครบ 5 แพลตฟอร์มแล้ว!` });
+      setFeedback({ type: "ok", text: `${res.providerUsed ?? "AI"} · สร้างแคปชันครบทั้ง 9 แพลตฟอร์มแล้ว!` });
     } catch {
       topUpTokens(18);
       setFeedback({ type: "err", text: "Network error — 18 Tokens Refunded" });
@@ -132,13 +131,7 @@ export function useSocialStudio(initialMedia?: { url: string; kind: "image" | "v
       const fallbackText = topicIntro || "New update from Neramit AI";
       const effectiveVariants: SocialCopyVariantsMap = hasAnyCopy
         ? variants
-        : {
-            x: { caption: fallbackText, hashtags: ["#NeramitAI"] },
-            facebook: { caption: fallbackText, hashtags: ["#NeramitAI"] },
-            instagram: { caption: fallbackText, hashtags: ["#NeramitAI"] },
-            youtube: { title: fallbackText.slice(0, 80), caption: fallbackText, hashtags: ["Shorts"] },
-            tiktok: { caption: fallbackText, hashtags: ["#fyp", "#NeramitAI"] },
-          };
+        : createEmptyCopyVariants(fallbackText);
 
       const res = await submitSocialPostRequest({
         brandId: activeBrand?.id ?? "brand-neramit", topicIntro, mediaKind, mediaUrl: mediaUrl || undefined,

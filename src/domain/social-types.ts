@@ -1,15 +1,7 @@
 import { z } from "zod";
 
 export const SocialChannelIdSchema = z.enum([
-  "x",
-  "facebook",
-  "instagram",
-  "youtube",
-  "tiktok",
-  "line",
-  "linkedin",
-  "threads",
-  "telegram",
+  "x", "facebook", "instagram", "youtube", "tiktok", "line", "linkedin", "threads", "telegram",
 ]);
 
 export type SocialChannelId = z.infer<typeof SocialChannelIdSchema>;

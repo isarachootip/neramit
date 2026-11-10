@@ -2,23 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import {
-  applyInboundWebhookToPost,
-  BrandProfileRecord,
-  InboundAutoPostWebhookSchema,
-  PublicBrandProfile,
-  PublicChannelConnection,
-  SOCIAL_CHANNELS,
-  SocialChannelId,
-  SocialPostRecord,
-  UpsertBrandChannelSchema,
+  applyInboundWebhookToPost, BrandProfileRecord, InboundAutoPostWebhookSchema,
+  PublicBrandProfile, PublicChannelConnection, SOCIAL_CHANNELS, SocialChannelId,
+  SocialPostRecord, UpsertBrandChannelSchema,
 } from "../domain/social-types";
 import { decryptSecret, encryptSecret, maskSecretPreview } from "../domain/token-crypto";
-import {
-  INITIAL_BRAND_PROFILES,
-  INITIAL_SOCIAL_POSTS,
-  makeDefaultBridgeConfig,
-  makeDefaultChannels,
-} from "./social-seeds";
+import { INITIAL_BRAND_PROFILES, INITIAL_SOCIAL_POSTS, makeDefaultBridgeConfig, makeDefaultChannels } from "./social-seeds";
 
 interface SocialDatabaseShape {
   brands: BrandProfileRecord[];
@@ -160,10 +149,6 @@ export function upsertBrandProfileAndChannel(
 
   writeDb(db);
   return toPublicBrandProfile(brand);
-}
-
-export function listSocialPosts(): SocialPostRecord[] {
-  return readDb().posts;
 }
 
 export function saveSocialPostRecord(post: SocialPostRecord): SocialPostRecord {

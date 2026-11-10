@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  createEmptyCopyVariants,
   CreateSocialPostSchema,
   SocialCopyVariantsMap,
   SocialPostRecord,
@@ -18,8 +19,6 @@ function getOriginFromRequest(request: Request): string {
   const url = new URL(request.url);
   return process.env.NEXT_PUBLIC_APP_URL?.trim() || url.origin;
 }
-
-const DEFAULT_EMPTY_VARIANT = { caption: "", hashtags: [] as string[] };
 
 export async function GET(request: Request) {
   await processDueScheduledPosts(getOriginFromRequest(request)).catch(() => {});
@@ -41,11 +40,8 @@ export async function POST(request: Request) {
     const input = parsed.data;
     const brand = getBrandProfileById(input.brandId);
     const fullVariants: SocialCopyVariantsMap = {
-      x: input.variants.x ?? DEFAULT_EMPTY_VARIANT,
-      facebook: input.variants.facebook ?? DEFAULT_EMPTY_VARIANT,
-      instagram: input.variants.instagram ?? DEFAULT_EMPTY_VARIANT,
-      youtube: input.variants.youtube ?? DEFAULT_EMPTY_VARIANT,
-      tiktok: input.variants.tiktok ?? DEFAULT_EMPTY_VARIANT,
+      ...createEmptyCopyVariants(input.topicIntro || "Neramit AI"),
+      ...input.variants,
     };
 
     const isScheduledFuture = Boolean(

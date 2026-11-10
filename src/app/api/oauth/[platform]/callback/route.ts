@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { SocialChannelIdSchema } from "@/domain/social-types";
 import { upsertBrandProfileAndChannel } from "@/repositories/social-db";
+import { discoverSocialChannelTargets } from "@/services/social-account-discovery";
 import { exchangeOAuthCodeForTokens } from "@/services/social-oauth";
 
 export async function GET(
@@ -34,10 +35,15 @@ export async function GET(
 
   try {
     const tokens = await exchangeOAuthCodeForTokens(parsedPlatform.data, code, origin);
+    const discovered = await discoverSocialChannelTargets(brandId, parsedPlatform.data, tokens.accessToken);
+    const firstTarget = discovered.targets[0];
+
     upsertBrandProfileAndChannel({
       brandId,
       channel: parsedPlatform.data,
-      accessToken: tokens.accessToken,
+      accountHandle: firstTarget?.handle,
+      externalTargetId: firstTarget?.id,
+      accessToken: firstTarget?.accessToken || tokens.accessToken,
       refreshToken: tokens.refreshToken,
       dryRun: false,
     });

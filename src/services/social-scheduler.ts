@@ -1,6 +1,7 @@
 import {
   ChannelPublishResult,
   computePostAggregateStatus,
+  shouldRouteViaAutoPostBridge,
   SocialChannelId,
   SocialPostRecord,
 } from "../domain/social-types";
@@ -10,6 +11,15 @@ import {
   resolvePublicMediaUrl,
   saveSocialPostRecord,
 } from "../repositories/social-db";
+import {
+  publishToTelegram,
+  publishViaAutoPostBridge,
+} from "./publishers/autopost-bridge-publisher";
+import {
+  publishToLinkedIn,
+  publishToLineOA,
+  publishToThreads,
+} from "./publishers/community-platforms-publisher";
 import {
   publishToFacebook,
   publishToInstagram,
@@ -45,16 +55,38 @@ export async function dispatchSocialPostChannels(
 
       try {
         let res: ChannelPublishResult;
-        if (channelId === "x") {
-          res = await publishToX(cred, variant, retryCount);
+        if (brand.bridge && shouldRouteViaAutoPostBridge(brand.bridge, cred)) {
+          res = await publishViaAutoPostBridge({
+            bridge: brand.bridge,
+            postId: post.id,
+            brandId: brand.id,
+            brandName: brand.name,
+            channel: channelId,
+            cred,
+            variant,
+            mediaKind: post.mediaKind,
+            publicMediaUrl,
+            baseOrigin,
+            retryCount,
+          });
+        } else if (channelId === "x") {
+          res = await publishToX(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
         } else if (channelId === "facebook") {
           res = await publishToFacebook(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
         } else if (channelId === "instagram") {
           res = await publishToInstagram(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
         } else if (channelId === "youtube") {
           res = await publishToYouTube(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
-        } else {
+        } else if (channelId === "tiktok") {
           res = await publishToTikTok(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
+        } else if (channelId === "line") {
+          res = await publishToLineOA(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
+        } else if (channelId === "linkedin") {
+          res = await publishToLinkedIn(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
+        } else if (channelId === "threads") {
+          res = await publishToThreads(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
+        } else {
+          res = await publishToTelegram(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
         }
         updatedResultsMap.set(channelId, res);
       } catch (err) {
