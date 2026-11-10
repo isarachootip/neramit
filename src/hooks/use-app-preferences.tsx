@@ -48,7 +48,24 @@ export function AppPreferencesProvider({ children }: { children: React.ReactNode
     setLocaleState(prefs.locale);
     setPayWithTeamState(prefs.payWithTeam);
     setTokenBalance(loadWalletBalance());
-    setApiVaultState(loadApiKeyVault());
+    const localVault = loadApiKeyVault();
+    setApiVaultState(localVault);
+
+    fetch("/api/vault")
+      .then((r) => r.json())
+      .then((data: { vault?: ApiKeyVaultConfig }) => {
+        if (data.vault) {
+          const merged: ApiKeyVaultConfig = {
+            engineMode: localVault.engineMode,
+            geminiApiKey: localVault.geminiApiKey || data.vault.geminiApiKey,
+            openaiApiKey: localVault.openaiApiKey || data.vault.openaiApiKey,
+            falApiKey: localVault.falApiKey || data.vault.falApiKey,
+          };
+          setApiVaultState(merged);
+          saveApiKeyVault(merged);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -94,6 +111,11 @@ export function AppPreferencesProvider({ children }: { children: React.ReactNode
   const updateApiVault = (next: ApiKeyVaultConfig) => {
     setApiVaultState(next);
     saveApiKeyVault(next);
+    fetch("/api/vault", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    }).catch(() => {});
   };
 
   return (
