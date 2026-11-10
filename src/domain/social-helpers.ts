@@ -1,16 +1,7 @@
 import { z } from "zod";
 import {
-  AutoPostBridgeConfig,
-  ChannelEngagementMetrics,
-  ChannelPublishResult,
-  InboundAutoPostWebhookSchema,
-  SOCIAL_CHANNELS,
-  SocialChannelId,
-  SocialCopyVariantsMap,
-  SocialMediaKind,
-  SocialPostRecord,
-  SocialPostStatus,
-  StoredChannelCredential,
+  AutoPostBridgeConfig, ChannelEngagementMetrics, ChannelPublishResult, InboundAutoPostWebhookSchema,
+  SOCIAL_CHANNELS, SocialChannelId, SocialCopyVariantsMap, SocialMediaKind, SocialPostRecord, SocialPostStatus, StoredChannelCredential,
 } from "./social-types";
 
 export function createEmptyCopyVariants(defaultText = ""): SocialCopyVariantsMap {

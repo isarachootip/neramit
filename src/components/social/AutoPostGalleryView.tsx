@@ -49,27 +49,19 @@ export function AutoPostGalleryView({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="neu-raised rounded-2xl p-4">
           <div className="text-2xl font-extrabold tabular-nums">{totalDeliveries}</div>
-          <div className="text-[11px] font-bold uppercase text-[var(--muted-foreground)]">
-            {locale === "th" ? "โพสต์สำเร็จรวม (9 ช่องทาง)" : "Published Deliveries"}
-          </div>
+          <div className="text-[11px] font-bold uppercase text-[var(--muted-foreground)]">{locale === "th" ? "โพสต์สำเร็จรวม (9 ช่องทาง)" : "Published Deliveries"}</div>
         </div>
         <div className="neu-raised rounded-2xl p-4">
           <div className="text-2xl font-extrabold tabular-nums text-sky-400">{kpi.totalViews.toLocaleString()}</div>
-          <div className="text-[11px] font-bold uppercase text-[var(--muted-foreground)]">
-            {locale === "th" ? "ยอดการมองเห็นรวม (Total Views)" : "Total Views Across Channels"}
-          </div>
+          <div className="text-[11px] font-bold uppercase text-[var(--muted-foreground)]">{locale === "th" ? "ยอดการมองเห็นรวม (Total Views)" : "Total Views Across Channels"}</div>
         </div>
         <div className="neu-raised rounded-2xl p-4">
           <div className="text-2xl font-extrabold tabular-nums text-pink-400">{kpi.totalEngagements.toLocaleString()}</div>
-          <div className="text-[11px] font-bold uppercase text-[var(--muted-foreground)]">
-            {locale === "th" ? "ยอดมีส่วนร่วม (Likes+Comments+Shares)" : "Total Engagements"}
-          </div>
+          <div className="text-[11px] font-bold uppercase text-[var(--muted-foreground)]">{locale === "th" ? "ยอดมีส่วนร่วม (Likes+Comments+Shares)" : "Total Engagements"}</div>
         </div>
         <div className="neu-raised rounded-2xl p-4">
           <div className="text-2xl font-extrabold tabular-nums text-emerald-400">{kpi.avgEngagementRate}%</div>
-          <div className="text-[11px] font-bold uppercase text-[var(--muted-foreground)]">
-            {locale === "th" ? "อัตราส่วนร่วมเฉลี่ย (Avg ER)" : "Avg Engagement Rate"}
-          </div>
+          <div className="text-[11px] font-bold uppercase text-[var(--muted-foreground)]">{locale === "th" ? "อัตราส่วนร่วมเฉลี่ย (Avg ER)" : "Avg Engagement Rate"}</div>
         </div>
       </div>
 
@@ -82,12 +74,7 @@ export function AutoPostGalleryView({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleSyncAll}
-            disabled={syncingAll}
-            className="neu-tint-primary flex items-center gap-1.5 rounded-2xl px-3.5 py-1.5 text-xs font-extrabold"
-          >
+          <button type="button" onClick={handleSyncAll} disabled={syncingAll} className="neu-tint-primary flex items-center gap-1.5 rounded-2xl px-3.5 py-1.5 text-xs font-extrabold">
             <RefreshCw className={`size-3.5 ${syncingAll ? "animate-spin" : ""}`} />
             <span>{syncingAll ? "Syncing 9 Channels..." : locale === "th" ? "ดึงผลล่าสุดทุกช่องทาง (Sync Metrics)" : "Sync All Metrics"}</span>
           </button>
