@@ -21,7 +21,8 @@ export function useMediaStudio(
   refundTokens: (amount: number) => void,
   apiVault: ApiKeyVaultConfig
 ) {
-  const [stage, setStage] = useState<"image" | "video" | "audio" | "chat">(initialKind);
+  const [stage, setStage] = useState<"image" | "video" | "audio" | "chat" | "social">(initialKind);
+  const [chainedSocialMedia, setChainedSocialMedia] = useState<{ url: string; kind: "image" | "video"; prompt?: string } | undefined>(undefined);
   const mediaKind: "image" | "video" = stage === "video" ? "video" : "image";
   const models = useMemo(() => ALL_STUDIO_MODELS.filter((m) => m.output === mediaKind), [mediaKind]);
 
@@ -64,7 +65,7 @@ export function useMediaStudio(
     setErrorMessage(null);
   };
 
-  const switchStage = (nextStage: "image" | "video" | "audio" | "chat") => {
+  const switchStage = (nextStage: "image" | "video" | "audio" | "chat" | "social") => {
     setStage(nextStage);
     if (nextStage === "image" && activeModel.output !== "image") selectModel("seedream-5-pro");
     if (nextStage === "video" && activeModel.output !== "video") selectModel("seedance-2-5");
@@ -88,6 +89,14 @@ export function useMediaStudio(
   const handleChainStage = (payload: PipelineChainPayload) => {
     const res = buildChainedStageState(payload);
     setStage(res.targetStage);
+    if (res.targetStage === "social") {
+      setChainedSocialMedia({
+        url: payload.mediaUrl,
+        kind: payload.mediaKind ?? "image",
+        prompt: payload.sourcePrompt,
+      });
+      return;
+    }
     if (res.targetStage === "video" || res.targetStage === "image") {
       selectModel(res.modelSlug);
       if (res.mode) setMode(res.mode);
@@ -165,7 +174,7 @@ export function useMediaStudio(
     handleInsertTag: (tag: string) => setPrompt((c) => insertReferenceTag(c, tag)),
     handleRollIdea: () => setPrompt(rollPromptIdea(mediaKind, locale, prompt)),
     handleEnhancePrompt: () => setPrompt((c) => enhanceCreativePrompt(c, presetId)),
-    handleChainStage, estimatedTokens, tokenDelta,
+    handleChainStage, chainedSocialMedia, estimatedTokens, tokenDelta,
     turns: turns.filter((t) => t.output === mediaKind),
     isGenerating, errorMessage, submitGeneration,
     reuseTurn: (t: StudioGenerationTurn) => {

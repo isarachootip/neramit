@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import { Film, Image as ImageIcon, MessageSquare, Mic, Sparkles } from "lucide-react";
+import { Film, Image as ImageIcon, MessageSquare, Mic, Share2, Sparkles } from "lucide-react";
 import { useAppPreferences } from "@/hooks/use-app-preferences";
 import { useMediaStudio } from "@/hooks/use-media-studio";
 import { AudioStudioView } from "@/components/audio/AudioStudioView";
 import { ChatStudioView } from "@/components/chat/ChatStudioView";
+import { SocialStudioWorkspace } from "@/components/social/SocialStudioWorkspace";
 import { ModelSelectorBar } from "./ModelSelectorBar";
 import { PipelineQueueBar } from "./PipelineQueueBar";
 import { ReferenceMediaSlots } from "./ReferenceMediaSlots";
@@ -18,9 +19,10 @@ export function MediaStudioWorkspace({ kind }: { kind: "image" | "video" }) {
 
   const omniTabs = [
     { id: "image" as const, label: "1. Image & 16-Layer", icon: ImageIcon },
-    { id: "video" as const, label: "2. Video & Motion (I2V)", icon: Film },
-    { id: "audio" as const, label: "3. Seed Audio (@Audio1)", icon: Mic },
-    { id: "chat" as const, label: "4. AI Creative Director", icon: MessageSquare },
+    { id: "video" as const, label: "2. Video & Motion", icon: Film },
+    { id: "audio" as const, label: "3. Seed Audio", icon: Mic },
+    { id: "chat" as const, label: "4. AI Director", icon: MessageSquare },
+    { id: "social" as const, label: "5. Auto-Post Hub", icon: Share2 },
   ];
 
   return (
@@ -69,6 +71,8 @@ export function MediaStudioWorkspace({ kind }: { kind: "image" | "video" }) {
         <AudioStudioView />
       ) : studio.stage === "chat" ? (
         <ChatStudioView />
+      ) : studio.stage === "social" ? (
+        <SocialStudioWorkspace initialMedia={studio.chainedSocialMedia} />
       ) : (
         <>
           <PipelineQueueBar

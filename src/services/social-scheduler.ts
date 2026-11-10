@@ -69,7 +69,7 @@ export async function dispatchSocialPostChannels(
     })
   );
 
-  const finalResults = post.channels.map(
+  const finalResults: ChannelPublishResult[] = post.channels.map(
     (ch) => updatedResultsMap.get(ch) ?? { channel: ch, status: "pending", retryCount: 0 }
   );
 

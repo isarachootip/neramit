@@ -8,6 +8,7 @@ export interface I18nStrings {
     videoStudio: string;
     audioStudio: string;
     chatStudio: string;
+    socialStudio: string;
     templates: string;
     history: string;
     pricing: string;
@@ -58,6 +59,7 @@ export const I18N_DICTIONARY: Record<StudioLocale, I18nStrings> = {
       videoStudio: "สตูดิโอวิดีโอ",
       audioStudio: "สตูดิโอเสียง",
       chatStudio: "ผู้กำกับ AI",
+      socialStudio: "Auto-Post",
       templates: "เทมเพลตโฆษณา",
       history: "คลังผลงาน",
       pricing: "แพ็กเกจ Token",
@@ -109,6 +111,7 @@ export const I18N_DICTIONARY: Record<StudioLocale, I18nStrings> = {
       videoStudio: "Video Studio",
       audioStudio: "Audio Studio",
       chatStudio: "AI Director",
+      socialStudio: "Auto-Post",
       templates: "Ad Templates",
       history: "History",
       pricing: "Token Plans",

@@ -42,12 +42,14 @@ export interface PipelineChainPayload {
   sourceTurnId: string;
   sourceModelTitle: string;
   mediaUrl: string;
-  targetStage: "image" | "video" | "audio";
+  mediaKind?: "image" | "video";
+  sourcePrompt?: string;
+  targetStage: "image" | "video" | "audio" | "social";
   layerLabel?: string;
 }
 
 export interface ChainedStageResult {
-  targetStage: "image" | "video" | "audio";
+  targetStage: "image" | "video" | "audio" | "social";
   modelSlug: string;
   mode?: VideoModeId;
   referenceImages: string[];
@@ -78,6 +80,16 @@ export function buildChainedStageState(payload: PipelineChainPayload): ChainedSt
       referenceImages: [payload.mediaUrl],
       lineageLabel: `Chained from ${sourcePart} → Seed Audio 1.0`,
       prompt: `สัมผัสประสบการณ์ใหม่ที่เหนือระดับกับ Neramit AI วันนี้`,
+    };
+  }
+
+  if (payload.targetStage === "social") {
+    return {
+      targetStage: "social",
+      modelSlug: "neramit-social",
+      referenceImages: [payload.mediaUrl],
+      lineageLabel: `Chained from ${sourcePart} → Auto-Post Hub`,
+      prompt: payload.sourcePrompt ?? "",
     };
   }
 

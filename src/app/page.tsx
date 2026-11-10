@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Coins, Film, Image as ImageIcon, LayoutTemplate, MessageSquare, Mic, Play, Sparkles } from "lucide-react";
+import { ArrowRight, Coins, Film, Image as ImageIcon, LayoutTemplate, MessageSquare, Mic, Play, Share2, Sparkles } from "lucide-react";
 import { NERAMIT_TEMPLATES } from "@/domain/templates-data";
 import { NeramitTemplate, StudioGenerationTurn } from "@/domain/studio-types";
 import { useAppPreferences } from "@/hooks/use-app-preferences";
@@ -28,6 +28,15 @@ export default function HomePage() {
     { href: "/create/video", title: t.home.makeVideo, desc: t.home.makeVideoDesc, badge: "11 Models · Seedance 2.5 · FLUX 3", icon: Film },
     { href: "/create/audio", title: t.home.makeAudio, desc: t.home.makeAudioDesc, badge: "Seed Audio 1.0 · @Audio1 Clone", icon: Mic },
     { href: "/create/chat", title: t.home.makeChat, desc: t.home.makeChatDesc, badge: "GLM 5.3 · Gemini Omni", icon: MessageSquare },
+    {
+      href: "/social",
+      title: "Social Content & Auto-Post",
+      desc: locale === "th"
+        ? "วิเคราะห์รูป + คำนำ เขียนแคปชันแยกตามจริตและ Auto-Post ลง X, FB, IG, YouTube, TikTok"
+        : "Generate 5-channel native social copy from images & auto-publish to X, FB, IG, YouTube, TikTok",
+      badge: "5 Direct APIs · Schedule",
+      icon: Share2,
+    },
   ];
 
   return (
@@ -41,7 +50,7 @@ export default function HomePage() {
         <p className="max-w-3xl text-xs sm:text-sm leading-relaxed text-[var(--muted-foreground)]">{t.home.subtitle}</p>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {studioCards.map((card) => {
           const Icon = card.icon;
           return (
