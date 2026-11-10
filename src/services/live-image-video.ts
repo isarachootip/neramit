@@ -23,11 +23,6 @@ interface GeminiGenerateResponse {
   error?: { message?: string };
 }
 
-interface ImagenPredictResponse {
-  predictions?: Array<{ bytesBase64Encoded?: string; mimeType?: string }>;
-  error?: { message?: string };
-}
-
 interface OpenAiImageResponse {
   data?: Array<{ url?: string; b64_json?: string }>;
   error?: { message?: string };
@@ -45,7 +40,7 @@ interface FalVideoResponse {
 
 async function callGeminiImage(params: LiveImageParams): Promise<string[]> {
   const keyParam = encodeURIComponent(params.provider.apiKey);
-  const flashUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${keyParam}`;
+  const flashUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${keyParam}`;
 
   const res = await fetch(flashUrl, {
     method: "POST",
@@ -54,29 +49,38 @@ async function callGeminiImage(params: LiveImageParams): Promise<string[]> {
       contents: [{ parts: [{ text: `Generate a high-resolution image (${params.aspectRatio}): ${params.prompt}` }] }],
       generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
     }),
-    signal: AbortSignal.timeout(45000),
+    signal: AbortSignal.timeout(35000),
   });
 
-  if (res.status === 404) {
-    const imagenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${keyParam}`;
-    const imgRes = await fetch(imagenUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        instances: [{ prompt: params.prompt }],
-        parameters: { sampleCount: Math.min(4, params.count) },
-      }),
-      signal: AbortSignal.timeout(45000),
-    });
-    const imgJson = (await imgRes.json()) as ImagenPredictResponse;
-    if (!imgRes.ok) {
-      throw new Error(imgJson.error?.message ?? `Gemini Imagen HTTP ${imgRes.status}`);
+  if (res.status === 429 || res.status === 404) {
+    const svgRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${keyParam}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text:
+                `Create a rich, commercial-grade SVG artwork (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">...</svg>) ` +
+                `with gradients, lighting effects, and modern visual composition for: "${params.prompt}". Return ONLY the raw <svg>...</svg> markup.`,
+            }],
+          }],
+        }),
+        signal: AbortSignal.timeout(25000),
+      }
+    );
+    if (svgRes.ok) {
+      const svgJson = (await svgRes.json()) as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      };
+      const rawText = svgJson.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      const svgMatch = rawText.match(/<svg[\s\S]*?<\/svg>/i);
+      if (svgMatch) {
+        const b64 = Buffer.from(svgMatch[0], "utf8").toString("base64");
+        return Array.from({ length: Math.min(4, params.count) }, () => `data:image/svg+xml;base64,${b64}`);
+      }
     }
-    const urls = (imgJson.predictions ?? [])
-      .filter((p) => Boolean(p.bytesBase64Encoded))
-      .map((p) => `data:${p.mimeType ?? "image/png"};base64,${p.bytesBase64Encoded}`);
-    if (urls.length === 0) throw new Error("Gemini Imagen returned no image bytes");
-    return urls;
   }
 
   const json = (await res.json()) as GeminiGenerateResponse;

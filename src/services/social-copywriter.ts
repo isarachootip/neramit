@@ -101,22 +101,22 @@ export async function generateMultimodalSocialCopy(
     }
     const keyParam = encodeURIComponent(resolved.apiKey);
     let res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyParam}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${keyParam}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: "application/json" } }),
-        signal: AbortSignal.timeout(35000),
+        signal: AbortSignal.timeout(25000),
       }
     );
-    if (res.status === 404) {
+    if (!res.ok) {
       res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyParam}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyParam}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: "application/json" } }),
-          signal: AbortSignal.timeout(35000),
+          signal: AbortSignal.timeout(25000),
         }
       );
     }

@@ -16,7 +16,7 @@ import {
 const KEYS = {
   UI: "neramit.ui.v1",
   WALLET: "neramit.wallet.v1",
-  VAULT: "neramit.vault.v1",
+  VAULT: "neramit.vault.v2",
   TURNS: "neramit.turns.v2",
   AUDIO: "neramit.audio.v2",
   CHATS: "neramit.chats.v2",

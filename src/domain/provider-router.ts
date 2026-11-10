@@ -112,6 +112,9 @@ export function resolveAudioProvider(vault: ApiKeyVaultConfig): ResolvedProvider
 
 export function pcm16Base64ToWavDataUrl(pcmBase64: string, sampleRate = 24000): string {
   const pcmBuffer = Buffer.from(pcmBase64, "base64");
+  if (pcmBuffer.length >= 12 && pcmBuffer.subarray(0, 4).toString("ascii") === "RIFF") {
+    return `data:audio/wav;base64,${pcmBase64}`;
+  }
   const numChannels = 1;
   const bitsPerSample = 16;
   const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;

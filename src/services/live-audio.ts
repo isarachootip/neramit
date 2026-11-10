@@ -66,27 +66,39 @@ export async function generateLiveSpeechAudio(params: LiveAudioParams): Promise<
       "en-male-marcus": "Charon",
     };
     const keyParam = encodeURIComponent(params.provider.apiKey);
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${keyParam}`,
+    const ttsBody = JSON.stringify({
+      contents: [{ parts: [{ text: params.script }] }],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: geminiVoiceMap[params.voiceId] ?? "Kore",
+            },
+          },
+        },
+      },
+    });
+    let res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-lite-tts:generateContent?key=${keyParam}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: params.script }] }],
-          generationConfig: {
-            responseModalities: ["AUDIO"],
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: {
-                  voiceName: geminiVoiceMap[params.voiceId] ?? "Kore",
-                },
-              },
-            },
-          },
-        }),
-        signal: AbortSignal.timeout(35000),
+        body: ttsBody,
+        signal: AbortSignal.timeout(30000),
       }
     );
+    if (!res.ok) {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${keyParam}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: ttsBody,
+          signal: AbortSignal.timeout(30000),
+        }
+      );
+    }
 
     const json = (await res.json()) as GeminiAudioResponse;
     if (!res.ok) {
