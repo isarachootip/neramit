@@ -1,30 +1,12 @@
 import assert from "node:assert/strict";
-import {
-  calculateGenerationTokens,
-  estimateAudioScriptTokens,
-} from "../src/domain/token-pricing";
-import {
-  extractReferenceTags,
-  insertReferenceTag,
-  syncPromptWithReferences,
-  enhanceCreativePrompt,
-  rollPromptIdea,
-} from "../src/domain/rich-prompt-engine";
-import {
-  validateGenerationInput,
-  validateAudioGenerationInput,
-  validateTemplateExecutionInput,
-} from "../src/domain/studio-schemas";
+import { calculateGenerationTokens, estimateAudioScriptTokens } from "../src/domain/token-pricing";
+import { extractReferenceTags, insertReferenceTag, syncPromptWithReferences, enhanceCreativePrompt, rollPromptIdea } from "../src/domain/rich-prompt-engine";
+import { validateGenerationInput, validateAudioGenerationInput, validateTemplateExecutionInput } from "../src/domain/studio-schemas";
 import { ALL_STUDIO_MODELS, getModelBySlug } from "../src/domain/models-video-data";
 import { NERAMIT_TEMPLATES, NERAMIT_PRICING_PACKAGES } from "../src/domain/templates-data";
-import {
-  detectAtMentionQuery,
-  applyAtMentionSelection,
-  buildChainedStageState,
-  settleQueueJobRefund,
-  validateApiKeyVault,
-} from "../src/domain/neramit-vault-types";
+import { detectAtMentionQuery, applyAtMentionSelection, buildChainedStageState, settleQueueJobRefund, validateApiKeyVault } from "../src/domain/neramit-vault-types";
 import { providerRouterTests } from "./provider-router.test";
+import { socialAutopostTests } from "./social-autopost.test";
 
 interface TestCase {
   name: string;
@@ -181,7 +163,7 @@ const tests: TestCase[] = [
 ];
 
 let passed = 0;
-const allSuites = [...tests, ...providerRouterTests];
+const allSuites = [...tests, ...providerRouterTests, ...socialAutopostTests];
 for (const test of allSuites) {
   try {
     test.run();
