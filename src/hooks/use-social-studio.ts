@@ -172,7 +172,7 @@ export function useSocialStudio(initialMedia?: { url: string; kind: "image" | "v
   };
 
   return {
-    locale, brands, setBrands, activeBrand, activeBrandId, setActiveBrandId, posts,
+    locale, brands, setBrands, activeBrand, activeBrandId, setActiveBrandId, posts, setPosts,
     topicIntro, setTopicIntro, mediaKind, setMediaKind, mediaUrl, setMediaUrl,
     selectedChannels, toggleChannel, variants, setVariants, scheduledAtLocal, setScheduledAtLocal,
     compatibility, isGeneratingCopy, isConvertingVideo, isPublishing, retryingPostId, feedback,

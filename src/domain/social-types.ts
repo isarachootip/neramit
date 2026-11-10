@@ -9,14 +9,10 @@ export type SocialMediaKind = "none" | "image" | "video";
 export type SocialPostStatus = "published" | "partial_failure" | "failed" | "scheduled";
 export type AutoPostBridgeProvider = "vibepost" | "webhook" | "upload_post";
 export type AutoPostRoutingMode = "bridge_fallback" | "bridge_primary" | "direct_only";
+export type ChannelRemoteState = "queued" | "processing" | "live_verified" | "flagged";
 
 export interface SocialChannelMetadata {
-  id: SocialChannelId;
-  label: string;
-  accentHex: string;
-  maxChars: number;
-  requiresVideo: boolean;
-  requiresMedia: boolean;
+  id: SocialChannelId; label: string; accentHex: string; maxChars: number; requiresVideo: boolean; requiresMedia: boolean;
 }
 
 export const SOCIAL_CHANNELS: SocialChannelMetadata[] = [
@@ -32,66 +28,37 @@ export const SOCIAL_CHANNELS: SocialChannelMetadata[] = [
 ];
 
 export interface StoredChannelCredential {
-  connected: boolean;
-  authMode: "oauth" | "token" | "dry_run";
-  accountHandle: string;
-  externalTargetId?: string;
-  encryptedAccessToken: string;
-  encryptedRefreshToken?: string;
-  dryRun: boolean;
-  updatedAt: string;
+  connected: boolean; authMode: "oauth" | "token" | "dry_run"; accountHandle: string; externalTargetId?: string;
+  encryptedAccessToken: string; encryptedRefreshToken?: string; dryRun: boolean; updatedAt: string;
 }
 
 export interface PublicChannelConnection {
-  connected: boolean;
-  authMode: "oauth" | "token" | "dry_run";
-  accountHandle: string;
-  externalTargetId?: string;
-  maskedToken: string;
-  dryRun: boolean;
+  connected: boolean; authMode: "oauth" | "token" | "dry_run"; accountHandle: string; externalTargetId?: string;
+  maskedToken: string; dryRun: boolean;
 }
 
 export interface AutoPostBridgeConfig {
-  enabled: boolean;
-  provider: AutoPostBridgeProvider;
-  endpointUrl: string;
-  encryptedBridgeKey: string;
-  encryptedWebhookSecret: string;
-  routingMode: AutoPostRoutingMode;
+  enabled: boolean; provider: AutoPostBridgeProvider; endpointUrl: string;
+  encryptedBridgeKey: string; encryptedWebhookSecret: string; routingMode: AutoPostRoutingMode;
 }
 
 export interface PublicAutoPostBridgeConfig {
-  enabled: boolean;
-  provider: AutoPostBridgeProvider;
-  endpointUrl: string;
-  maskedBridgeKey: string;
-  maskedWebhookSecret: string;
-  routingMode: AutoPostRoutingMode;
+  enabled: boolean; provider: AutoPostBridgeProvider; endpointUrl: string;
+  maskedBridgeKey: string; maskedWebhookSecret: string; routingMode: AutoPostRoutingMode;
 }
 
 export interface DiscoveredSocialTarget {
-  id: string;
-  label: string;
-  handle: string;
-  accessToken?: string;
+  id: string; label: string; handle: string; accessToken?: string;
 }
 
 export interface BrandProfileRecord {
-  id: string;
-  name: string;
-  voiceTone: string;
-  defaultHashtags: string[];
-  channels: Record<SocialChannelId, StoredChannelCredential>;
-  bridge?: AutoPostBridgeConfig;
+  id: string; name: string; voiceTone: string; defaultHashtags: string[];
+  channels: Record<SocialChannelId, StoredChannelCredential>; bridge?: AutoPostBridgeConfig;
 }
 
 export interface PublicBrandProfile {
-  id: string;
-  name: string;
-  voiceTone: string;
-  defaultHashtags: string[];
-  channels: Record<SocialChannelId, PublicChannelConnection>;
-  bridge: PublicAutoPostBridgeConfig;
+  id: string; name: string; voiceTone: string; defaultHashtags: string[];
+  channels: Record<SocialChannelId, PublicChannelConnection>; bridge: PublicAutoPostBridgeConfig;
 }
 
 export const PlatformCopyVariantSchema = z.object({
@@ -104,14 +71,25 @@ export const PlatformCopyVariantSchema = z.object({
 export type PlatformCopyVariant = z.infer<typeof PlatformCopyVariantSchema>;
 export type SocialCopyVariantsMap = Record<SocialChannelId, PlatformCopyVariant>;
 
+export interface ChannelEngagementMetrics {
+  views: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  engagementRate: number;
+  lastSyncedAt: string;
+}
+
 export interface ChannelPublishResult {
   channel: SocialChannelId;
   status: "pending" | "published" | "failed" | "skipped";
+  remoteState?: ChannelRemoteState;
   externalPostId?: string;
   externalPostUrl?: string;
   errorMessage?: string;
   publishedAt?: string;
   modeUsed?: "live_api" | "autopost_bridge" | "dry_run";
+  metrics?: ChannelEngagementMetrics;
   retryCount: number;
 }
 
@@ -181,15 +159,24 @@ export const InboundAutoPostWebhookSchema = z.object({
   postId: z.string().min(1),
   channel: SocialChannelIdSchema,
   status: z.enum(["published", "failed"]),
+  remoteState: z.enum(["queued", "processing", "live_verified", "flagged"]).optional(),
   externalPostId: z.string().max(200).optional(),
   externalPostUrl: z.string().max(500).optional(),
   errorMessage: z.string().max(500).optional(),
+  metrics: z.object({
+    views: z.number().nonnegative(),
+    likes: z.number().nonnegative(),
+    comments: z.number().nonnegative(),
+    shares: z.number().nonnegative(),
+  }).optional(),
 });
 
 export {
   applyInboundWebhookToPost,
   checkChannelMediaCompatibility,
+  computeCampaignTotals,
   computePostAggregateStatus,
   createEmptyCopyVariants,
+  estimateProgressiveMetrics,
   shouldRouteViaAutoPostBridge,
 } from "./social-helpers";

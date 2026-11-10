@@ -1,6 +1,7 @@
 import {
   AutoPostBridgeConfig,
   BrandProfileRecord,
+  estimateProgressiveMetrics,
   SocialChannelId,
   SocialPostRecord,
   StoredChannelCredential,
@@ -74,13 +75,13 @@ export const INITIAL_SOCIAL_POSTS: SocialPostRecord[] = [
       telegram: { caption: "🚀 อัปเดตแคมเปญ Swatch Snap วิดีโอ 4 เฉดสีพร้อมดาวน์โหลดไปใช้งานต่อในคอมมูนิตี้", hashtags: ["#NeramitAI"] },
     },
     results: [
-      { channel: "x", status: "published", externalPostUrl: "https://x.com/neramit_x/status/1900101", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), retryCount: 0 },
-      { channel: "facebook", status: "published", externalPostUrl: "https://facebook.com/neramit/posts/99102", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), retryCount: 0 },
-      { channel: "instagram", status: "published", externalPostUrl: "https://instagram.com/p/DNeramit01", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), retryCount: 0 },
-      { channel: "youtube", status: "published", externalPostUrl: "https://youtube.com/shorts/NeramitYT01", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), retryCount: 0 },
-      { channel: "tiktok", status: "published", externalPostUrl: "https://tiktok.com/@neramit.tiktok/video/7401992", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), retryCount: 0 },
-      { channel: "line", status: "published", externalPostUrl: "https://line.me/R/ti/p/@neramit_oa", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), retryCount: 0 },
-      { channel: "threads", status: "published", externalPostUrl: "https://www.threads.net/@neramit.threads", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), retryCount: 0 },
+      { channel: "x", status: "published", remoteState: "live_verified", externalPostUrl: "https://x.com/neramit_x/status/1900101", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), metrics: estimateProgressiveMetrics("x", "video", new Date(Date.now() - 1000 * 60 * 44).toISOString(), "seed-x"), retryCount: 0 },
+      { channel: "facebook", status: "published", remoteState: "live_verified", externalPostUrl: "https://facebook.com/neramit/posts/99102", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), metrics: estimateProgressiveMetrics("facebook", "video", new Date(Date.now() - 1000 * 60 * 44).toISOString(), "seed-fb"), retryCount: 0 },
+      { channel: "instagram", status: "published", remoteState: "live_verified", externalPostUrl: "https://instagram.com/p/DNeramit01", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), metrics: estimateProgressiveMetrics("instagram", "video", new Date(Date.now() - 1000 * 60 * 44).toISOString(), "seed-ig"), retryCount: 0 },
+      { channel: "youtube", status: "published", remoteState: "live_verified", externalPostUrl: "https://youtube.com/shorts/NeramitYT01", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), metrics: estimateProgressiveMetrics("youtube", "video", new Date(Date.now() - 1000 * 60 * 44).toISOString(), "seed-yt"), retryCount: 0 },
+      { channel: "tiktok", status: "published", remoteState: "live_verified", externalPostUrl: "https://tiktok.com/@neramit.tiktok/video/7401992", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), metrics: estimateProgressiveMetrics("tiktok", "video", new Date(Date.now() - 1000 * 60 * 44).toISOString(), "seed-tt"), retryCount: 0 },
+      { channel: "line", status: "published", remoteState: "live_verified", externalPostUrl: "https://line.me/R/ti/p/@neramit_oa", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), metrics: estimateProgressiveMetrics("line", "video", new Date(Date.now() - 1000 * 60 * 44).toISOString(), "seed-ln"), retryCount: 0 },
+      { channel: "threads", status: "published", remoteState: "live_verified", externalPostUrl: "https://www.threads.net/@neramit.threads", modeUsed: "dry_run", publishedAt: new Date(Date.now() - 1000 * 60 * 44).toISOString(), metrics: estimateProgressiveMetrics("threads", "video", new Date(Date.now() - 1000 * 60 * 44).toISOString(), "seed-th"), retryCount: 0 },
     ],
   },
 ];

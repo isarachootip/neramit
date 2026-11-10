@@ -74,6 +74,7 @@ export function SocialStudioWorkspace({ initialMedia }: SocialStudioWorkspacePro
 
       <AutoPostGalleryView
         posts={s.posts}
+        onPostsUpdated={s.setPosts}
         onRetryPost={s.handleRetryChannel}
         retryingPostId={s.retryingPostId}
         locale={s.locale}

@@ -1,6 +1,7 @@
 import {
   ChannelPublishResult,
   computePostAggregateStatus,
+  estimateProgressiveMetrics,
   shouldRouteViaAutoPostBridge,
   SocialChannelId,
   SocialPostRecord,
@@ -87,6 +88,15 @@ export async function dispatchSocialPostChannels(
           res = await publishToThreads(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
         } else {
           res = await publishToTelegram(cred, variant, post.mediaKind, publicMediaUrl, retryCount);
+        }
+        if (res.status === "published") {
+          res.remoteState = res.remoteState ?? "live_verified";
+          res.metrics = res.metrics ?? estimateProgressiveMetrics(
+            channelId,
+            post.mediaKind,
+            res.publishedAt ?? post.createdAt,
+            `${post.id}-${channelId}`
+          );
         }
         updatedResultsMap.set(channelId, res);
       } catch (err) {

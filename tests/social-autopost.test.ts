@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import {
   applyInboundWebhookToPost,
   checkChannelMediaCompatibility,
+  computeCampaignTotals,
   computePostAggregateStatus,
   createEmptyCopyVariants,
   CreateSocialPostSchema,
+  estimateProgressiveMetrics,
   GenerateSocialCopySchema,
   InboundAutoPostWebhookSchema,
   shouldRouteViaAutoPostBridge,
@@ -102,8 +104,13 @@ export const socialAutopostTests: SocialTestCase[] = [
     },
   },
   {
-    name: "Inbound Webhook Status Sync: Updates channel delivery status and recomputes aggregate post status",
+    name: "Post Tracking & Metrics Sync: Computes progressive metrics, webhook metrics updates, and campaign KPI totals",
     run: () => {
+      const m = estimateProgressiveMetrics("tiktok", "video", new Date(Date.now() - 3600_000).toISOString());
+      assert.equal(m.views > 0, true);
+      assert.equal(m.likes > 0, true);
+      assert.equal(m.engagementRate > 0, true);
+
       const basePost: SocialPostRecord = {
         id: "spost-webhook-test",
         brandId: "brand-neramit",
@@ -115,7 +122,13 @@ export const socialAutopostTests: SocialTestCase[] = [
         channels: ["x", "line"],
         variants: createEmptyCopyVariants("Test copy"),
         results: [
-          { channel: "x", status: "published", retryCount: 0 },
+          {
+            channel: "x",
+            status: "published",
+            remoteState: "live_verified",
+            metrics: { views: 1200, likes: 90, comments: 14, shares: 22, engagementRate: 10.5, lastSyncedAt: new Date().toISOString() },
+            retryCount: 0,
+          },
           { channel: "line", status: "failed", errorMessage: "Pending webhook", retryCount: 0 },
         ],
       };
@@ -124,8 +137,10 @@ export const socialAutopostTests: SocialTestCase[] = [
         postId: "spost-webhook-test",
         channel: "line",
         status: "published",
+        remoteState: "live_verified",
         externalPostId: "line-bcast-99",
         externalPostUrl: "https://line.me/R/ti/p/@neramit",
+        metrics: { views: 800, likes: 60, comments: 6, shares: 14 },
       });
       assert.equal(parsedWebhook.success, true);
 
@@ -134,8 +149,13 @@ export const socialAutopostTests: SocialTestCase[] = [
         assert.equal(updated.status, "published");
         const lineRes = updated.results.find((r) => r.channel === "line");
         assert.equal(lineRes?.status, "published");
-        assert.equal(lineRes?.externalPostUrl, "https://line.me/R/ti/p/@neramit");
-        assert.equal(lineRes?.modeUsed, "autopost_bridge");
+        assert.equal(lineRes?.remoteState, "live_verified");
+        assert.equal(lineRes?.metrics?.views, 800);
+
+        const totals = computeCampaignTotals([updated]);
+        assert.equal(totals.totalViews, 2000);
+        assert.equal(totals.totalLikes, 150);
+        assert.equal(totals.totalEngagements, 90 + 14 + 22 + 60 + 6 + 14);
       }
     },
   },
