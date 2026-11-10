@@ -32,11 +32,7 @@ export function AutoPostGalleryView({
   const handleSyncAll = async () => {
     setSyncingAll(true);
     try {
-      const res = await fetch("/api/social/posts/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
+      const res = await fetch("/api/social/posts/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
       const data = (await res.json()) as { posts?: SocialPostRecord[] };
       if (data.posts) onPostsUpdated(data.posts);
     } finally {
