@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ALL_STUDIO_MODELS, getModelBySlug } from "../domain/models-video-data";
-import { buildChainedStageState, PipelineChainPayload, QueueJobItem, settleQueueJobRefund } from "../domain/neramit-vault-types";
+import {
+  ApiKeyVaultConfig,
+  buildChainedStageState,
+  PipelineChainPayload,
+  QueueJobItem,
+  settleQueueJobRefund,
+} from "../domain/neramit-vault-types";
 import { enhanceCreativePrompt, insertReferenceTag, rollPromptIdea, syncPromptWithReferences } from "../domain/rich-prompt-engine";
 import { StudioGenerationTurn, StudioLocale, StudioModelDefinition, VideoModeId } from "../domain/studio-types";
 import { calculateGenerationTokens } from "../domain/token-pricing";
@@ -12,7 +18,8 @@ export function useMediaStudio(
   initialKind: "image" | "video",
   locale: StudioLocale,
   spendTokens: (amount: number) => boolean,
-  refundTokens: (amount: number) => void
+  refundTokens: (amount: number) => void,
+  apiVault: ApiKeyVaultConfig
 ) {
   const [stage, setStage] = useState<"image" | "video" | "audio" | "chat">(initialKind);
   const mediaKind: "image" | "video" = stage === "video" ? "video" : "image";
@@ -117,6 +124,7 @@ export function useMediaStudio(
           modelSlug: activeModel.slug, output: mediaKind, mode: mediaKind === "video" ? mode : undefined,
           prompt, aspectRatio, resolution, duration: mediaKind === "video" ? duration : undefined,
           numImages, layerDecomposition, thinking, audio, referenceImages, maskDataUrl, lineageLabel, simulateFailure,
+          vault: apiVault,
         }),
       });
       const data = await res.json();

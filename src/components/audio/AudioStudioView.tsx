@@ -9,14 +9,14 @@ import { useAppPreferences } from "@/hooks/use-app-preferences";
 import { loadAudioTurns, saveAudioTurns } from "@/repositories/studio-storage";
 
 const VOICES = [
-  { id: "th-female-nicha", name: "ณิชา (Nicha · Thai Commercial)", lang: "Thai", gender: "Female" },
-  { id: "th-male-kavin", name: "กวิน (Kavin · Warm Narrator)", lang: "Thai", gender: "Male" },
-  { id: "en-female-aria", name: "Aria (English Studio HD)", lang: "English", gender: "Female" },
-  { id: "en-male-marcus", name: "Marcus (Cinematic Trailer)", lang: "English", gender: "Male" },
+  { id: "th-female-nicha", name: "ณิชา (Nicha · Thai Commercial)" },
+  { id: "th-male-kavin", name: "กวิน (Kavin · Warm Narrator)" },
+  { id: "en-female-aria", name: "Aria (English Studio HD)" },
+  { id: "en-male-marcus", name: "Marcus (Cinematic Trailer)" },
 ];
 
 export function AudioStudioView() {
-  const { locale, spendTokens } = useAppPreferences();
+  const { locale, spendTokens, topUpTokens, apiVault } = useAppPreferences();
   const [mode, setMode] = useState<"describe" | "voice" | "clone" | "image">("voice");
   const [voiceId, setVoiceId] = useState<string>(VOICES[0].id);
   const [format, setFormat] = useState<"mp3" | "wav" | "ogg_opus">("mp3");
@@ -25,6 +25,7 @@ export function AudioStudioView() {
   const [script, setScript] = useState<string>("");
   const [turns, setTurns] = useState<AudioStudioTurn[]>([]);
   const [isBusy, setIsBusy] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setTurns(loadAudioTurns());
@@ -35,37 +36,43 @@ export function AudioStudioView() {
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     if (!script.trim() || isBusy || !spendTokens(estimate.tokens)) return;
 
     setIsBusy(true);
-    await new Promise((r) => setTimeout(r, 550));
+    try {
+      const res = await fetch("/api/audio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode,
+          prompt: script,
+          voiceId: selectedVoice.id,
+          voiceName: selectedVoice.name,
+          format,
+          speechRate,
+          pitchRate,
+          subtitles: true,
+          vault: apiVault,
+        }),
+      });
+      const data = (await res.json()) as { turn?: AudioStudioTurn; error?: string };
+      if (!res.ok || !data.turn) {
+        topUpTokens(estimate.tokens);
+        setErrorMsg(data.error ?? "TTS synthesis error — Tokens Auto-Refunded");
+        return;
+      }
 
-    const parts = script.split(/(?<=[.!?।])\s+|\s{2,}/).map((s) => s.trim()).filter(Boolean);
-    const sentences = (parts.length > 0 ? parts : [script.trim()]).map((text, idx) => ({
-      startMs: idx * 2100,
-      endMs: (idx + 1) * 2100,
-      text,
-    }));
-
-    const newTurn: AudioStudioTurn = {
-      id: `aud-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      mode,
-      prompt: script,
-      voiceId: selectedVoice.id,
-      voiceName: selectedVoice.name,
-      format,
-      seconds: estimate.seconds,
-      tokensCharged: estimate.tokens,
-      audioUrl: "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
-      subtitles: sentences,
-    };
-
-    const next = [newTurn, ...turns];
-    setTurns(next);
-    saveAudioTurns(next);
-    setScript("");
-    setIsBusy(false);
+      const next = [data.turn, ...turns];
+      setTurns(next);
+      saveAudioTurns(next);
+      setScript("");
+    } catch {
+      topUpTokens(estimate.tokens);
+      setErrorMsg("Network error — Tokens Auto-Refunded");
+    } finally {
+      setIsBusy(false);
+    }
   };
 
   return (
@@ -75,11 +82,11 @@ export function AudioStudioView() {
           <Mic className="size-5" />
         </span>
         <div>
-          <h1 className="text-xl font-extrabold">Seed Audio 1.0 Studio</h1>
+          <h1 className="text-xl font-extrabold">Seed Audio 1.0 & Neural TTS Studio</h1>
           <p className="text-xs text-[var(--muted-foreground)]">
             {locale === "th"
-              ? "สร้างเสียงพากย์โฆษณา โคลนเสียงด้วยป้าย @Audio1 และส่งออกซับไตเติลซิงค์เวลา"
-              : "Generate studio voiceovers, clone voices with @Audio1 tags, and sync subtitles"}
+              ? "สร้างเสียงพากย์โฆษณาด้วย Gemini / OpenAI Neural TTS โคลนโทนเสียง @Audio1 และซิงค์ซับไตเติล SRT"
+              : "Synthesize studio voiceovers via Gemini / OpenAI Neural TTS, @Audio1 tags, and SRT subtitles"}
           </p>
         </div>
       </div>
@@ -103,11 +110,7 @@ export function AudioStudioView() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-[var(--muted-foreground)]">Voice Actor</label>
-            <select
-              value={voiceId}
-              onChange={(e) => setVoiceId(e.target.value)}
-              className="neu-pressed rounded-xl px-3 py-2 text-xs font-semibold bg-[var(--surface)]"
-            >
+            <select value={voiceId} onChange={(e) => setVoiceId(e.target.value)} className="neu-pressed rounded-xl px-3 py-2 text-xs font-semibold bg-[var(--surface)]">
               {VOICES.map((v) => (
                 <option key={v.id} value={v.id}>{v.name}</option>
               ))}
@@ -121,11 +124,7 @@ export function AudioStudioView() {
             <label className="text-xs font-semibold text-[var(--muted-foreground)]">Pitch ({pitchRate}) · {format.toUpperCase()}</label>
             <div className="flex items-center gap-2">
               <input type="range" min={-12} max={12} value={pitchRate} onChange={(e) => setPitchRate(Number(e.target.value))} className="w-full accent-violet-500" />
-              <button
-                type="button"
-                onClick={() => setFormat(format === "mp3" ? "wav" : format === "wav" ? "ogg_opus" : "mp3")}
-                className="neu-pressed rounded-lg px-2 py-1 text-[10px] font-bold uppercase"
-              >
+              <button type="button" onClick={() => setFormat(format === "mp3" ? "wav" : format === "wav" ? "ogg_opus" : "mp3")} className="neu-pressed rounded-lg px-2 py-1 text-[10px] font-bold uppercase">
                 {format}
               </button>
             </div>
@@ -150,6 +149,8 @@ export function AudioStudioView() {
           placeholder={locale === "th" ? "พิมพ์บทพูดโฆษณา หรือใส่ป้าย @Audio1 เพื่อให้พูดตามโทนเสียงต้นแบบ..." : "Type your voiceover script or insert @Audio1 tags..."}
           className="neu-pressed w-full rounded-2xl p-3.5 text-sm focus:outline-2 focus:outline-violet-500"
         />
+
+        {errorMsg && <p className="rounded-xl bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-400">{errorMsg}</p>}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="text-xs text-[var(--muted-foreground)] tabular-nums">~{estimate.seconds}s · Est. {estimate.tokens} Tokens</span>

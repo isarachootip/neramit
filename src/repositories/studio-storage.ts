@@ -84,8 +84,17 @@ export function loadGenerationTurns(): StudioGenerationTurn[] {
   }
 }
 
+function safeSetItem(key: string, value: string): void {
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage quota overflow when large base64 data URLs are generated
+  }
+}
+
 export function saveGenerationTurns(turns: StudioGenerationTurn[]): void {
-  if (isBrowser()) window.localStorage.setItem(KEYS.TURNS, JSON.stringify(turns));
+  safeSetItem(KEYS.TURNS, JSON.stringify(turns.slice(0, 15)));
 }
 
 export function loadAudioTurns(): AudioStudioTurn[] {
@@ -99,7 +108,7 @@ export function loadAudioTurns(): AudioStudioTurn[] {
 }
 
 export function saveAudioTurns(turns: AudioStudioTurn[]): void {
-  if (isBrowser()) window.localStorage.setItem(KEYS.AUDIO, JSON.stringify(turns));
+  safeSetItem(KEYS.AUDIO, JSON.stringify(turns.slice(0, 15)));
 }
 
 export function loadChatConversations(): ChatConversation[] {
@@ -113,5 +122,5 @@ export function loadChatConversations(): ChatConversation[] {
 }
 
 export function saveChatConversations(items: ChatConversation[]): void {
-  if (isBrowser()) window.localStorage.setItem(KEYS.CHATS, JSON.stringify(items));
+  safeSetItem(KEYS.CHATS, JSON.stringify(items.slice(0, 20)));
 }

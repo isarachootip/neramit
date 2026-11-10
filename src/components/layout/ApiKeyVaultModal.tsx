@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Check, Cpu, KeyRound, ShieldCheck, X } from "lucide-react";
 import { ApiKeyVaultConfig } from "@/domain/neramit-vault-types";
 import { StudioLocale } from "@/domain/studio-types";
@@ -22,6 +22,10 @@ export function ApiKeyVaultModal({
 }: ApiKeyVaultModalProps) {
   const [draft, setDraft] = useState<ApiKeyVaultConfig>(vault);
   const [savedToast, setSavedToast] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (open) setDraft(vault);
+  }, [open, vault]);
 
   if (!open) return null;
 

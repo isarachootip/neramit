@@ -52,6 +52,17 @@ export function StudioOutputFeed({
                 {turn.mode && (
                   <span className="neu-pressed rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase">{turn.mode}</span>
                 )}
+                {turn.providerUsed && (
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                      turn.providerUsed.startsWith("Live")
+                        ? "bg-emerald-500/15 text-emerald-300"
+                        : "neu-pressed text-[var(--muted-foreground)]"
+                    }`}
+                  >
+                    {turn.providerUsed}
+                  </span>
+                )}
                 {turn.lineageLabel && (
                   <span className="flex items-center gap-1 rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[11px] font-bold text-violet-300">
                     <GitBranch className="size-3" />

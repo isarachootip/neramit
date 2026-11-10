@@ -13,8 +13,8 @@ import { RichPromptComposer } from "./RichPromptComposer";
 import { StudioOutputFeed } from "./StudioOutputFeed";
 
 export function MediaStudioWorkspace({ kind }: { kind: "image" | "video" }) {
-  const { locale, t, spendTokens, topUpTokens } = useAppPreferences();
-  const studio = useMediaStudio(kind, locale, spendTokens, topUpTokens);
+  const { locale, t, spendTokens, topUpTokens, apiVault } = useAppPreferences();
+  const studio = useMediaStudio(kind, locale, spendTokens, topUpTokens, apiVault);
 
   const omniTabs = [
     { id: "image" as const, label: "1. Image & 16-Layer", icon: ImageIcon },

@@ -41,7 +41,8 @@ export function AppHeader() {
   } = useAppPreferences();
 
   const hasLiveKey = Boolean(
-    apiVault.geminiApiKey || apiVault.openaiApiKey || apiVault.falApiKey
+    apiVault.engineMode === "hybrid" &&
+      (apiVault.geminiApiKey || apiVault.openaiApiKey || apiVault.falApiKey)
   );
 
   const navItems = [

@@ -24,6 +24,7 @@ import {
   settleQueueJobRefund,
   validateApiKeyVault,
 } from "../src/domain/neramit-vault-types";
+import { providerRouterTests } from "./provider-router.test";
 
 interface TestCase {
   name: string;
@@ -180,7 +181,8 @@ const tests: TestCase[] = [
 ];
 
 let passed = 0;
-for (const test of tests) {
+const allSuites = [...tests, ...providerRouterTests];
+for (const test of allSuites) {
   try {
     test.run();
     console.log(`✅ PASS: ${test.name}`);
@@ -192,4 +194,4 @@ for (const test of tests) {
   }
 }
 
-console.log(`\n🎉 All ${passed}/${tests.length} Neramit AI domain test suites passed!`);
+console.log(`\n🎉 All ${passed}/${allSuites.length} Neramit AI domain test suites passed!`);

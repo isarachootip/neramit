@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { getModelBySlug } from "@/domain/models-video-data";
+import {
+  mergeVaultWithServerEnv,
+  resolveImageProvider,
+  resolveVideoProvider,
+} from "@/domain/provider-router";
 import { validateGenerationInput } from "@/domain/studio-schemas";
 import { LayerItem, StudioGenerationTurn } from "@/domain/studio-types";
 import { calculateGenerationTokens } from "@/domain/token-pricing";
+import { generateLiveImage, generateLiveVideo } from "@/services/live-image-video";
 
 const SAMPLE_IMAGE_POOL: string[] = [
   "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1080&auto=format&fit=crop",
@@ -24,7 +30,7 @@ const SAMPLE_VIDEO_POOL: string[] = [
 interface ExtendedRequestPayload {
   lineageLabel?: string;
   simulateFailure?: boolean;
-  providerHint?: string;
+  vault?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -70,18 +76,50 @@ export async function POST(request: Request) {
       audio: input.audio,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 650));
+    const vault = mergeVaultWithServerEnv(rawBody.vault);
+    const resolved =
+      input.output === "video"
+        ? resolveVideoProvider(vault)
+        : resolveImageProvider(model.vendor, vault);
 
     const count = input.output === "image" ? Math.min(4, input.numImages) : 1;
-    const resultUrls: string[] = [];
+    let resultUrls: string[] = [];
 
-    for (let i = 0; i < count; i++) {
-      if (input.output === "video") {
-        const vidIdx = (input.prompt.length + i) % SAMPLE_VIDEO_POOL.length;
-        resultUrls.push(SAMPLE_VIDEO_POOL[vidIdx]);
-      } else {
-        const imgIdx = (input.prompt.length + i) % SAMPLE_IMAGE_POOL.length;
-        resultUrls.push(SAMPLE_IMAGE_POOL[imgIdx]);
+    if (resolved.provider !== "simulation") {
+      try {
+        if (input.output === "video") {
+          const videoUrl = await generateLiveVideo({
+            provider: resolved,
+            prompt: input.prompt,
+            aspectRatio: input.aspectRatio,
+            referenceImageUrl: input.referenceImages[0],
+          });
+          resultUrls = [videoUrl];
+        } else {
+          resultUrls = await generateLiveImage({
+            provider: resolved,
+            prompt: input.prompt,
+            aspectRatio: input.aspectRatio,
+            count,
+          });
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Live provider request failed";
+        return NextResponse.json(
+          { error: `${resolved.label} Error: ${msg} — 100% Tokens Refunded`, refunded: true },
+          { status: 502 }
+        );
+      }
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 650));
+      for (let i = 0; i < count; i++) {
+        if (input.output === "video") {
+          const vidIdx = (input.prompt.length + i) % SAMPLE_VIDEO_POOL.length;
+          resultUrls.push(SAMPLE_VIDEO_POOL[vidIdx]);
+        } else {
+          const imgIdx = (input.prompt.length + i) % SAMPLE_IMAGE_POOL.length;
+          resultUrls.push(SAMPLE_IMAGE_POOL[imgIdx]);
+        }
       }
     }
 
@@ -107,7 +145,7 @@ export async function POST(request: Request) {
       aspectRatio: input.aspectRatio,
       resolution: input.resolution,
       durationSeconds: input.duration,
-      numImages: count,
+      numImages: resultUrls.length,
       tokensCharged,
       status: "succeeded",
       referenceImages: input.referenceImages,
@@ -115,7 +153,7 @@ export async function POST(request: Request) {
       resultUrls,
       layers,
       lineageLabel: rawBody.lineageLabel ?? `Origin · ${model.title}`,
-      providerUsed: rawBody.providerHint || "Neramit Simulation Engine",
+      providerUsed: resolved.label,
     };
 
     return NextResponse.json({ turn });

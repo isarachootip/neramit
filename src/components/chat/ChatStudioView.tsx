@@ -13,13 +13,14 @@ const CHAT_MODELS = [
 ];
 
 export function ChatStudioView() {
-  const { locale, spendTokens } = useAppPreferences();
+  const { locale, spendTokens, topUpTokens, apiVault } = useAppPreferences();
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [activeId, setActiveId] = useState<string>("chat-seed-1");
   const [modelAlias, setModelAlias] = useState<string>(CHAT_MODELS[0].alias);
   const [draft, setDraft] = useState<string>("");
   const [streamingText, setStreamingText] = useState<string>("");
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const loaded = loadChatConversations();
@@ -41,63 +42,75 @@ export function ChatStudioView() {
     setConversations(next);
     saveChatConversations(next);
     setActiveId(fresh.id);
+    setErrorMsg(null);
   };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     if (!draft.trim() || isStreaming || !activeConv || !spendTokens(6)) return;
 
     const userPrompt = draft.trim();
-    const userMsg: ChatTurnMessage = {
-      id: `u-${Date.now()}`,
-      role: "user",
-      content: userPrompt,
-      createdAt: new Date().toISOString(),
-    };
-
+    const userMsg: ChatTurnMessage = { id: `u-${Date.now()}`, role: "user", content: userPrompt, createdAt: new Date().toISOString() };
     setDraft("");
     setIsStreaming(true);
 
+    const nextMessages = [...activeConv.messages, userMsg];
     const updatedWithUser = conversations.map((c) =>
       c.id === activeConv.id
-        ? {
-            ...c,
-            title: c.messages.length === 0 ? userPrompt.slice(0, 36) : c.title,
-            updatedAt: new Date().toISOString(),
-            messages: [...c.messages, userMsg],
-          }
+        ? { ...c, title: c.messages.length === 0 ? userPrompt.slice(0, 36) : c.title, updatedAt: new Date().toISOString(), messages: nextMessages }
         : c
     );
     setConversations(updatedWithUser);
 
-    const replyFull =
-      locale === "th"
-        ? `สำหรับการสร้าง **"${userPrompt}"** แนะนำโครงสร้าง Prompt บน Neramit AI Omni-Studio:\n\n- **Model**: ใช้ \`Seedream 5 Pro\` (สำหรับภาพนิ่งแยก 16 เลเยอร์) หรือ \`Seedance 2.5\` (สำหรับวิดีโอพร้อมเสียง)\n- **Rich Prompt**: \`"${userPrompt} @img-1 — shot on 35mm Kodak Vision3, studio rim light, 8K commercial clarity"\``
-        : `Here is a Neramit AI creative direction for **"${userPrompt}"**:\n\n- **Recommended Model**: \`Seedance 2.5\` (Video) or \`Seedream 5 Pro\` (16-Layer Image)\n- **Rich Prompt**: \`"${userPrompt} @img-1 — 35mm anamorphic lens, soft volumetric key light, crisp commercial packshot"\``;
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelAlias,
+          locale,
+          messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+          vault: apiVault,
+        }),
+      });
+      const data = (await res.json()) as { reply?: string; providerUsed?: string; error?: string };
+      if (!res.ok || !data.reply) {
+        topUpTokens(6);
+        setErrorMsg(data.error ?? "Chat provider error — 6 Tokens Auto-Refunded");
+        setIsStreaming(false);
+        return;
+      }
 
-    for (let i = 1; i <= replyFull.length; i += 14) {
-      setStreamingText(replyFull.slice(0, i));
-      await new Promise((r) => setTimeout(r, 25));
+      const replyFull = data.reply;
+      for (let i = 1; i <= replyFull.length; i += 24) {
+        setStreamingText(replyFull.slice(0, i));
+        await new Promise((r) => setTimeout(r, 15));
+      }
+
+      const assistantMsg: ChatTurnMessage = {
+        id: `a-${Date.now()}`,
+        role: "assistant",
+        content: replyFull,
+        createdAt: new Date().toISOString(),
+        modelAlias: data.providerUsed ?? modelAlias,
+        tokensCharged: 6,
+      };
+
+      const finalConvs = updatedWithUser.map((c) =>
+        c.id === activeConv.id
+          ? { ...c, updatedAt: new Date().toISOString(), messages: [...c.messages, assistantMsg] }
+          : c
+      );
+      setConversations(finalConvs);
+      saveChatConversations(finalConvs);
+    } catch {
+      topUpTokens(6);
+      setErrorMsg("Network error — 6 Tokens Auto-Refunded");
+    } finally {
+      setStreamingText("");
+      setIsStreaming(false);
     }
-
-    const assistantMsg: ChatTurnMessage = {
-      id: `a-${Date.now()}`,
-      role: "assistant",
-      content: replyFull,
-      createdAt: new Date().toISOString(),
-      modelAlias,
-      tokensCharged: 6,
-    };
-
-    const finalConvs = updatedWithUser.map((c) =>
-      c.id === activeConv.id
-        ? { ...c, updatedAt: new Date().toISOString(), messages: [...c.messages, assistantMsg] }
-        : c
-    );
-    setConversations(finalConvs);
-    saveChatConversations(finalConvs);
-    setStreamingText("");
-    setIsStreaming(false);
   };
 
   return (
@@ -107,7 +120,6 @@ export function ChatStudioView() {
           <MessageSquarePlus className="size-4" />
           <span>{locale === "th" ? "เริ่มแชตแคมเปญใหม่" : "New Creative Chat"}</span>
         </button>
-
         <div className="flex flex-col gap-1.5">
           {conversations.map((conv) => (
             <button
@@ -142,35 +154,29 @@ export function ChatStudioView() {
           {activeConv?.messages.map((msg) => (
             <div key={msg.id} className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               {msg.role === "assistant" && (
-                <span className="neu-tint-primary grid size-8 shrink-0 place-items-center rounded-xl">
-                  <Bot className="size-4" />
-                </span>
+                <span className="neu-tint-primary grid size-8 shrink-0 place-items-center rounded-xl"><Bot className="size-4" /></span>
               )}
               <div className={`max-w-[82%] rounded-2xl p-3.5 text-xs sm:text-sm whitespace-pre-wrap leading-relaxed ${msg.role === "user" ? "neu-tint-primary" : "neu-pressed"}`}>
                 {msg.content}
                 {msg.tokensCharged && (
-                  <div className="mt-2 flex items-center gap-1 text-[10px] opacity-75">
+                  <div className="mt-2 flex items-center gap-2 text-[10px] opacity-80">
                     <Coins className="size-3 text-amber-400" />
-                    <span>{msg.tokensCharged} Tokens</span>
+                    <span>{msg.tokensCharged} Tokens · {msg.modelAlias}</span>
                   </div>
                 )}
               </div>
               {msg.role === "user" && (
-                <span className="neu-pressed grid size-8 shrink-0 place-items-center rounded-xl">
-                  <User className="size-4" />
-                </span>
+                <span className="neu-pressed grid size-8 shrink-0 place-items-center rounded-xl"><User className="size-4" /></span>
               )}
             </div>
           ))}
-
           {isStreaming && (
             <div className="flex gap-2.5">
-              <span className="neu-tint-primary grid size-8 shrink-0 place-items-center rounded-xl">
-                <Bot className="size-4 animate-pulse" />
-              </span>
-              <div className="neu-pressed max-w-[82%] rounded-2xl p-3.5 text-xs sm:text-sm whitespace-pre-wrap">{streamingText}</div>
+              <span className="neu-tint-primary grid size-8 shrink-0 place-items-center rounded-xl"><Bot className="size-4 animate-pulse" /></span>
+              <div className="neu-pressed max-w-[82%] rounded-2xl p-3.5 text-xs sm:text-sm whitespace-pre-wrap">{streamingText || "Thinking..."}</div>
             </div>
           )}
+          {errorMsg && <p className="rounded-xl bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-400">{errorMsg}</p>}
         </div>
 
         <form onSubmit={handleSend} className="flex items-center gap-2 pt-2">

@@ -3,15 +3,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Coins, Sparkles, X } from "lucide-react";
-import {
-  NeramitTemplate,
-  StudioGenerationTurn,
-  StudioLocale,
-} from "@/domain/studio-types";
-import {
-  loadGenerationTurns,
-  saveGenerationTurns,
-} from "@/repositories/studio-storage";
+import { NeramitTemplate, StudioGenerationTurn, StudioLocale } from "@/domain/studio-types";
+import { useAppPreferences } from "@/hooks/use-app-preferences";
+import { loadGenerationTurns, saveGenerationTurns } from "@/repositories/studio-storage";
 
 interface TemplateCustomizerModalProps {
   template: NeramitTemplate | null;
@@ -30,46 +24,66 @@ export function TemplateCustomizerModal({
   locale,
 }: TemplateCustomizerModalProps) {
   const router = useRouter();
+  const { apiVault, topUpTokens } = useAppPreferences();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [aspectRatio, setAspectRatio] = useState<string>("9:16");
   const [brief, setBrief] = useState<string>("");
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!template) return null;
 
   const handleRunTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isRunning) return;
-    if (!spendTokens(template.priceTokens)) return;
+    setErrorMsg(null);
+    if (isRunning || !spendTokens(template.priceTokens)) return;
 
     setIsRunning(true);
-    await new Promise((r) => setTimeout(r, 650));
-
     const summaryParts = Object.entries(answers).map(([k, v]) => `${k}: ${v}`);
-    const turn: StudioGenerationTurn = {
-      id: `tpl-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      output: "video",
-      modelSlug: "seedance-2-5",
-      modelTitle: `Template · ${template.name}`,
-      vendor: "bytedance",
-      mode: "i2v",
-      prompt: `[${template.name}] ${summaryParts.join(" · ")} ${brief}`.trim(),
-      aspectRatio,
-      resolution: "1080p",
-      durationSeconds: 7,
-      numImages: 1,
-      tokensCharged: template.priceTokens,
-      status: "succeeded",
-      referenceImages: [DEFAULT_SLOT_SAMPLE],
-      resultUrls: [template.coverVideoUrl],
-    };
+    const composedPrompt = `[${template.name}] ${summaryParts.join(" · ")} ${brief}`.trim();
 
-    const existing = loadGenerationTurns();
-    saveGenerationTurns([turn, ...existing]);
-    setIsRunning(false);
-    onClose();
-    router.push("/history");
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelSlug: "seedance-2-5",
+          output: "video",
+          mode: "i2v",
+          prompt: composedPrompt,
+          aspectRatio,
+          resolution: "1080p",
+          duration: 7,
+          referenceImages: [DEFAULT_SLOT_SAMPLE],
+          lineageLabel: `Template · ${template.name}`,
+          vault: apiVault,
+        }),
+      });
+      const data = (await res.json()) as { turn?: StudioGenerationTurn; error?: string };
+      if (!res.ok || !data.turn) {
+        topUpTokens(template.priceTokens);
+        setErrorMsg(data.error ?? "Template render failed — Tokens Refunded");
+        setIsRunning(false);
+        return;
+      }
+
+      const isSim = data.turn.providerUsed?.startsWith("Simulation");
+      const finalTurn: StudioGenerationTurn = {
+        ...data.turn,
+        modelTitle: `Template · ${template.name}`,
+        tokensCharged: template.priceTokens,
+        resultUrls: isSim ? [template.coverVideoUrl] : data.turn.resultUrls,
+      };
+
+      saveGenerationTurns([finalTurn, ...loadGenerationTurns()]);
+      setIsRunning(false);
+      onClose();
+      router.push("/history");
+    } catch {
+      topUpTokens(template.priceTokens);
+      setErrorMsg("Network error — Tokens Refunded");
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -81,15 +95,9 @@ export function TemplateCustomizerModal({
               {template.modelAlias}
             </span>
             <h2 className="mt-1 text-lg sm:text-xl font-extrabold">{template.name}</h2>
-            <p className="text-xs text-[var(--muted-foreground)]">
-              {template.description}
-            </p>
+            <p className="text-xs text-[var(--muted-foreground)]">{template.description}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="neu-raised grid size-8 place-items-center rounded-xl"
-          >
+          <button type="button" onClick={onClose} className="neu-raised grid size-8 place-items-center rounded-xl">
             <X className="size-4" />
           </button>
         </div>
@@ -118,9 +126,7 @@ export function TemplateCustomizerModal({
                     <button
                       key={choice}
                       type="button"
-                      onClick={() =>
-                        setAnswers((prev) => ({ ...prev, [q.key]: choice }))
-                      }
+                      onClick={() => setAnswers((prev) => ({ ...prev, [q.key]: choice }))}
                       className={`rounded-xl px-3 py-1.5 text-xs font-semibold text-left ${
                         currentVal === choice ? "neu-tint-primary" : "neu-pressed"
                       }`}
@@ -147,6 +153,8 @@ export function TemplateCustomizerModal({
               />
             </div>
           )}
+
+          {errorMsg && <p className="rounded-xl bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-400">{errorMsg}</p>}
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
             <div className="flex items-center gap-1.5">
